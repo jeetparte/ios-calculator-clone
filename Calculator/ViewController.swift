@@ -11,13 +11,14 @@ class ViewController: UIViewController {
     
     override func loadView() {
         let v = UIView()
-        v.backgroundColor = .systemYellow
         self.view = v
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        self.view.backgroundColor = .systemBackground
+        self.overrideUserInterfaceStyle = .dark
     }
 
 
