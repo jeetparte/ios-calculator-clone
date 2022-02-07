@@ -13,6 +13,7 @@
 		CE24267527B1522C00503A96 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CE24267327B1522C00503A96 /* Main.storyboard */; };
 		CE24267727B1522D00503A96 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE24267627B1522D00503A96 /* Assets.xcassets */; };
 		CE24267A27B1522D00503A96 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CE24267827B1522D00503A96 /* LaunchScreen.storyboard */; };
+		CE24268227B1609E00503A96 /* ButtonsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE24268127B1609E00503A96 /* ButtonsGridView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		CE24267627B1522D00503A96 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE24267927B1522D00503A96 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CE24267B27B1522D00503A96 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CE24268127B1609E00503A96 /* ButtonsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonsGridView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +61,7 @@
 				CE24266D27B1522C00503A96 /* AppDelegate.swift */,
 				CE24266F27B1522C00503A96 /* SceneDelegate.swift */,
 				CE24267127B1522C00503A96 /* ViewController.swift */,
+				CE24268127B1609E00503A96 /* ButtonsGridView.swift */,
 				CE24267327B1522C00503A96 /* Main.storyboard */,
 				CE24267627B1522D00503A96 /* Assets.xcassets */,
 				CE24267827B1522D00503A96 /* LaunchScreen.storyboard */,
@@ -140,6 +143,7 @@
 			files = (
 				CE24267227B1522C00503A96 /* ViewController.swift in Sources */,
 				CE24266E27B1522C00503A96 /* AppDelegate.swift in Sources */,
+				CE24268227B1609E00503A96 /* ButtonsGridView.swift in Sources */,
 				CE24267027B1522C00503A96 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

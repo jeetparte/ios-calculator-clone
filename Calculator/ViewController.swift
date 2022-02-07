@@ -9,7 +9,7 @@ import UIKit
 
 class ViewController: UIViewController {
     var resultsView: UIView!
-    var buttonsStackView: UIStackView!
+    var buttonsGridView: UIStackView!
     
     override func loadView() {
         let v = UIView()
@@ -23,18 +23,18 @@ class ViewController: UIViewController {
 //        self.overrideUserInterfaceStyle = .dark
         
         let v = self.view!
-        self.buttonsStackView = UIStackView()
-        v.addSubview(buttonsStackView)
-        buttonsStackView.backgroundColor = .systemMint
+        self.buttonsGridView = ButtonsGridView()
+        v.addSubview(buttonsGridView)
+        buttonsGridView.backgroundColor = .systemMint
         
-        buttonsStackView.translatesAutoresizingMaskIntoConstraints = false
+        buttonsGridView.translatesAutoresizingMaskIntoConstraints = false
         let marginsGuide = v.layoutMarginsGuide
         NSLayoutConstraint.activate([
-            marginsGuide.leadingAnchor.constraint(equalTo: buttonsStackView.leadingAnchor),
-            marginsGuide.trailingAnchor.constraint(equalTo: buttonsStackView.trailingAnchor),
-            marginsGuide.bottomAnchor.constraint(equalTo: buttonsStackView.bottomAnchor),
+            marginsGuide.leadingAnchor.constraint(equalTo: buttonsGridView.leadingAnchor),
+            marginsGuide.trailingAnchor.constraint(equalTo: buttonsGridView.trailingAnchor),
+            marginsGuide.bottomAnchor.constraint(equalTo: buttonsGridView.bottomAnchor),
             
-            buttonsStackView.heightAnchor.constraint(equalTo: marginsGuide.heightAnchor, multiplier: 0.65) // might want to tweak this for landscape orientation
+            buttonsGridView.heightAnchor.constraint(equalTo: marginsGuide.heightAnchor, multiplier: 0.65) // might want to tweak this for landscape orientation
         ])
         
         self.resultsView = UIView()
@@ -42,9 +42,9 @@ class ViewController: UIViewController {
         resultsView.backgroundColor = .systemPurple
         resultsView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            resultsView.leadingAnchor.constraint(equalTo: buttonsStackView.leadingAnchor),
-            resultsView.trailingAnchor.constraint(equalTo: buttonsStackView.trailingAnchor),
-            buttonsStackView.topAnchor.constraint(equalToSystemSpacingBelow: resultsView.bottomAnchor, multiplier: 1),
+            resultsView.leadingAnchor.constraint(equalTo: buttonsGridView.leadingAnchor),
+            resultsView.trailingAnchor.constraint(equalTo: buttonsGridView.trailingAnchor),
+            buttonsGridView.topAnchor.constraint(equalToSystemSpacingBelow: resultsView.bottomAnchor, multiplier: 1),
             resultsView.topAnchor.constraint(equalTo: marginsGuide.topAnchor)
         ])
     }
