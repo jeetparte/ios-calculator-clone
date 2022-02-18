@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ButtonView: UIButton {
+class ButtonView: UIView {
     var buttonConfiguration: ButtonConfiguration
     
     var showsAlternateKey: Bool = false // default
@@ -17,7 +17,7 @@ class ButtonView: UIButton {
         
         super.init(frame: .zero)
         
-        self.backgroundColor = .systemGray2
+        self.setBackgroundColor()
         
 //        self.layer.borderColor = UIColor.systemRed.cgColor
 //        self.layer.borderWidth = 1.0
@@ -26,6 +26,25 @@ class ButtonView: UIButton {
         
         let tapGR = UITapGestureRecognizer(target: self, action: #selector(self.tap))
         self.addGestureRecognizer(tapGR)
+    }
+    
+    // Colors for the default, i.e. unhighlighted state
+    private func setBackgroundColor() {
+        let backgroundColor: UIColor
+        switch buttonConfiguration.color {
+        case .accentColor:
+            backgroundColor = UIColor(named: "ButtonAccentColor")!
+        case .scientificButtonColor:
+            backgroundColor = UIColor(named: "ScientificButtonColor")!
+        case .scientificButtonProminent:
+            backgroundColor = UIColor(named: "ScientificButtonProminentColor")!
+        case .standardButtonColor:
+            backgroundColor =  UIColor(named: "StandardButtonColor")!
+        case .standardButtonProminent:
+            backgroundColor = UIColor(named: "StandardButtonProminentColor")!
+        }
+        
+        self.backgroundColor = backgroundColor
     }
     
     override func layoutSubviews() {

@@ -140,7 +140,7 @@ class ButtonsGridView: UIStackView {
                 button.isHidden = !makeVisible
                 
                 // make visual transition smooth
-                button.alpha = 1.0 - button.alpha // toggle between 0 and 1
+                button.alpha = 1.0 - button.alpha // toggles between 0 and 1
             }
         }
     }
