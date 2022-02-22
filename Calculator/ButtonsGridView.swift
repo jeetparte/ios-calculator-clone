@@ -18,13 +18,10 @@ class ButtonsGridView: UIStackView {
         didSet {
             switch calculationMode {
             case .standard:
-//                print("switched to standard calculation mode")
                 self.toggleVisibilityForScientificButtons(makeVisible: false)
             case .scientific:
-//                print("switched to scientific calculation mode")
                 self.toggleVisibilityForScientificButtons(makeVisible: true)
             }
-            
         }
     }
             
@@ -40,10 +37,7 @@ class ButtonsGridView: UIStackView {
         
 //        self.layer.borderWidth = 1.0
 //        self.layer.borderColor = UIColor.red.cgColor
-        
-//        self.translatesAutoresizingMaskIntoConstraints = false
-//        self.heightAnchor.constraint(equalToConstant: 250).isActive = true
-                
+                        
         self.setupSubviews()
     }
     
@@ -64,15 +58,13 @@ class ButtonsGridView: UIStackView {
     }
     
     private func setupSubviews() {
-        self.configureRow1()
-        
-        
-        // activate constraints
-        let currentOrientation = self.traitCollection.phoneInterfaceOrientation
-        self.handleOrientationChange(newOrientation: currentOrientation)
+        let rowIndices = 0..<4
+        rowIndices.forEach {
+            self.configureRow(index: $0)
+        }
     }
     
-    private func configureRow1() {
+    private func configureRow(index: Int) {
         let row = UIStackView()
         row.axis = .horizontal
         row.spacing = 8.0
@@ -81,42 +73,40 @@ class ButtonsGridView: UIStackView {
 //        self.layer.borderColor = UIColor.red.cgColor
         self.addArrangedSubview(row)
         
-        // Create views for row 1 buttons
-        let standardButtons: [ButtonView] = Calculator.standardButtons[0].map { buttonConfig in
-            let button = ButtonView(buttonConfiguration: buttonConfig)
-            return button
+        // Create views
+        let standardButtons: [ButtonView] = Calculator.standardButtons[index].map {
+            ButtonView(buttonConfiguration: $0)
         }
-        let scientificButtons: [ButtonView] = Calculator.scientificButtons[0].map { buttonConfig in
-            let button = ButtonView(buttonConfiguration: buttonConfig)
-            return button
+        let scientificButtons: [ButtonView] = Calculator.scientificButtons[index].map {
+            ButtonView(buttonConfiguration: $0)
         }
         
-        self.allScientificButtons[0] = scientificButtons
+        self.allScientificButtons[index] = scientificButtons
         
         scientificButtons.forEach { button in
             row.addArrangedSubview(button)
             
-            // we don't show scientific buttons in portrait mode, but these constraints
+            // we don't show scientific buttons in portrait mode, but this constraint
             // make the visual transition during orientation change smooth
-            self.portraitConstraints.append(contentsOf: [
-                button.heightAnchor.constraint(equalTo: button.widthAnchor)
-            ])
+            let pc = button.heightAnchor.constraint(equalTo: button.widthAnchor)
+            pc.identifier = button.buttonConfiguration.text
+            self.portraitConstraints.append(pc)
             
-            self.landscapeConstraints.append(contentsOf: [
-                button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 0.7)
-            ])
+            let lc = button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 0.7)
+            lc.identifier = button.buttonConfiguration.text
+            self.landscapeConstraints.append(lc)
         }
         
         standardButtons.forEach { button in            
             row.addArrangedSubview(button)
             
-            self.portraitConstraints.append(contentsOf: [
-                button.heightAnchor.constraint(equalTo: button.widthAnchor)
-            ])
+            let pc = button.heightAnchor.constraint(equalTo: button.widthAnchor)
+            pc.identifier = button.buttonConfiguration.text
+            self.portraitConstraints.append(pc)
             
-            self.landscapeConstraints.append(contentsOf: [
-                button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 0.7)
-            ])
+            let lc = button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 0.7)
+            lc.identifier = button.buttonConfiguration.text
+            self.landscapeConstraints.append(lc)
         }
     }
     
@@ -140,7 +130,7 @@ class ButtonsGridView: UIStackView {
                 button.isHidden = !makeVisible
                 
                 // make visual transition smooth
-                button.alpha = 1.0 - button.alpha // toggles between 0 and 1
+                button.alpha = makeVisible ? 1.0 : 0.0
             }
         }
     }

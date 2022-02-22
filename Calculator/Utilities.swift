@@ -8,34 +8,22 @@
 import Foundation
 import UIKit
 
-extension UITraitCollection {
-    var phoneInterfaceOrientation: InterfaceOrientation {
-        guard (self.userInterfaceIdiom != .unspecified &&
-               self.horizontalSizeClass != .unspecified &&
-               self.verticalSizeClass != .unspecified) else {
-            return .unknown
-        }
-        precondition(self.userInterfaceIdiom == .phone, "Unhandled user interface idiom. This only works for iPhone.")
-        
-        switch (self.horizontalSizeClass, self.verticalSizeClass) {
-        case (.compact, .regular):
-            return .portrait
-        case (.regular, .compact):
-            return .landscape // big iPhone
-        case (.compact, .compact):
-            return .landscape // small iPhone
-        default:
-            assertionFailure("Could not determine phone interface orientation for size classes: " +
-                             "\(self.horizontalSizeClass),  \(self.verticalSizeClass)")
-            return .unknown
-        }
-    }
-}
-
 enum InterfaceOrientation {
     case unknown
     case portrait
     case landscape
+}
+
+extension UIInterfaceOrientation {
+    var simpleOrientation: Calculator.InterfaceOrientation {
+        if self.isPortrait {
+            return .portrait
+        } else if self.isLandscape {
+            return .landscape
+        } else {
+            return .unknown
+        }
+    }
 }
 
 enum CalculationMode {
