@@ -33,7 +33,7 @@ class ButtonsGridView: UIStackView {
         self.distribution = .fill
         self.alignment = .fill
         
-        self.spacing = 8.0
+        self.spacing = Constants.interButtonSpacingVertical
         
 //        self.layer.borderWidth = 1.0
 //        self.layer.borderColor = UIColor.red.cgColor
@@ -50,38 +50,40 @@ class ButtonsGridView: UIStackView {
         case .portrait:
             self.calculationMode = .standard
             self.activateConstraints(for: newOrientation)
+            self.setButtonSpacing(for: newOrientation)
         case .landscape:
             self.calculationMode = .scientific
             self.activateConstraints(for: newOrientation)
+            self.setButtonSpacing(for: newOrientation)
         default: break
         }
     }
     
     private func setupSubviews() {
-        let rowIndices = 0..<4
+        let rowIndices = 0..<5
         rowIndices.forEach {
             self.configureRow(index: $0)
         }
     }
     
-    private func configureRow(index: Int) {
+    private func configureRow(index rowIndex: Int) {
         let row = UIStackView()
         row.axis = .horizontal
-        row.spacing = 8.0
+        row.spacing = Constants.interButtonSpacingHorizontal
         
 //        row.layer.borderWidth = 1.0
 //        self.layer.borderColor = UIColor.red.cgColor
         self.addArrangedSubview(row)
         
         // Create views
-        let standardButtons: [ButtonView] = Calculator.standardButtons[index].map {
+        let standardButtons: [ButtonView] = Calculator.standardButtons[rowIndex].map {
             ButtonView(buttonConfiguration: $0)
         }
-        let scientificButtons: [ButtonView] = Calculator.scientificButtons[index].map {
+        let scientificButtons: [ButtonView] = Calculator.scientificButtons[rowIndex].map {
             ButtonView(buttonConfiguration: $0)
         }
         
-        self.allScientificButtons[index] = scientificButtons
+        self.allScientificButtons[rowIndex] = scientificButtons
         
         scientificButtons.forEach { button in
             row.addArrangedSubview(button)
@@ -92,7 +94,7 @@ class ButtonsGridView: UIStackView {
             pc.identifier = button.buttonConfiguration.text
             self.portraitConstraints.append(pc)
             
-            let lc = button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 0.7)
+            let lc = button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: Constants.buttonAspectRatio)
             lc.identifier = button.buttonConfiguration.text
             self.landscapeConstraints.append(lc)
         }
@@ -100,13 +102,31 @@ class ButtonsGridView: UIStackView {
         standardButtons.forEach { button in            
             row.addArrangedSubview(button)
             
-            let pc = button.heightAnchor.constraint(equalTo: button.widthAnchor)
+            // double width for .zero button in row 5
+            let isZeroButton = rowIndex == 4 && button.buttonConfiguration.id == .zero
+            let multiplier = isZeroButton ? 2.0 : 1.0
+            let constant = isZeroButton ? Constants.interButtonSpacingHorizontal : 0
+            let pc = button.widthAnchor.constraint(equalTo: button.heightAnchor,
+                                                   multiplier: multiplier,
+                                                   constant: constant)
             pc.identifier = button.buttonConfiguration.text
             self.portraitConstraints.append(pc)
             
-            let lc = button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: 0.7)
-            lc.identifier = button.buttonConfiguration.text
-            self.landscapeConstraints.append(lc)
+            if !isZeroButton {
+                let lc = button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: Constants.buttonAspectRatio)
+                lc.identifier = button.buttonConfiguration.text
+                self.landscapeConstraints.append(lc)
+            } else {
+                // set width / height based on adjacent buttons
+                assert(row.arrangedSubviews.count >= 2)
+                let prev = row.arrangedSubviews.first!
+                let lc1 = button.heightAnchor.constraint(equalTo: prev.heightAnchor)
+                lc1.identifier = button.buttonConfiguration.text
+                let lc2 = button.widthAnchor.constraint(equalTo: prev.widthAnchor, multiplier: 2, constant: Constants.interButtonSpacingHorizontal)
+                lc2.identifier = button.buttonConfiguration.text
+                self.landscapeConstraints.append(contentsOf: [lc1, lc2])
+            }
+            
         }
     }
     
@@ -135,9 +155,31 @@ class ButtonsGridView: UIStackView {
         }
     }
     
+    private func setButtonSpacing(for orientation: InterfaceOrientation) {
+        var horizontalSpacing: CGFloat
+        var verticalSpacing: CGFloat
+        switch orientation {
+        case .landscape:
+            horizontalSpacing = Constants.interButtonSpacingHorizontal - 2
+            verticalSpacing = Constants.interButtonSpacingVertical - 2
+        default:
+            // portrait and otherwise
+            horizontalSpacing = Constants.interButtonSpacingHorizontal
+            verticalSpacing = Constants.interButtonSpacingVertical
+            break
+        }
+        
+        self.spacing = verticalSpacing
+        self.arrangedSubviews.forEach {
+            if let row = $0 as? UIStackView, row.axis == .horizontal {
+                row.spacing = horizontalSpacing
+            }
+        }
+    }
+    
     private struct Constants {
-        static let interButtonSpacingPortrait: CGFloat = 10.00
-        static let interButtonSpacingLandscape: CGFloat = 10.00
+        static let interButtonSpacingVertical: CGFloat = 10.00
+        static let interButtonSpacingHorizontal: CGFloat = 10.00
         static let buttonAspectRatio: CGFloat = 0.83 // height:width
     }
 }
