@@ -13,8 +13,7 @@ class ButtonsGridView: UIStackView {
     var landscapeConstraints = [NSLayoutConstraint]()
     
     var allScientificButtons: [[UIView]] = .init(repeating: [], count: 5) // five rows
-    /// We setup height and width constraints for the first button and then constrain the other buttons in relation to this one.
-    var firstStandardButton: UIView!
+    var firstStandardButton: ButtonView?
     
     var calculationMode: CalculationMode = .standard {
         didSet {
@@ -69,73 +68,68 @@ class ButtonsGridView: UIStackView {
     private func configureRow(index rowIndex: Int) {
         let row = UIStackView()
         row.axis = .horizontal
-        
-//        row.layer.borderWidth = 1.0
-//        self.layer.borderColor = UIColor.red.cgColor
         self.addArrangedSubview(row)
         
-        // Create views
-        let scientificRowButtons: [ButtonView] = Calculator.scientificButtons[rowIndex].map {            
+        //        row.layer.borderWidth = 1.0
+        //        self.layer.borderColor = UIColor.red.cgColor
+        
+        // Add buttons to row with constraints
+        Calculator.scientificButtonConfigurations[rowIndex].forEach {
             let button = ButtonView(buttonConfiguration: $0)
             row.addArrangedSubview(button)
-            return button
+            self.allScientificButtons[rowIndex].append(button)
+            
+            self.generateConstraints(scientificButton: button)
         }
-        let standardRowButtons: [ButtonView] = Calculator.standardButtons[rowIndex].map {
+        
+        Calculator.standardButtonConfigurations[rowIndex].forEach {
             let button = ButtonView(buttonConfiguration: $0)
             row.addArrangedSubview(button)
-            return button
-        }
-        
-        self.allScientificButtons[rowIndex] = scientificRowButtons
-        
-        scientificRowButtons.forEach { button in
-//            row.addArrangedSubview(button)
             
-            // we don't show scientific buttons in portrait mode, but this constraint
-            // make the visual transition during orientation change smooth
-            let pc = button.heightAnchor.constraint(equalTo: button.widthAnchor)
-            pc.identifier = button.buttonConfiguration.text
-            self.portraitConstraints.append(pc)
-            
-            let lc = button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: Constants.buttonAspectRatio)
-            lc.identifier = button.buttonConfiguration.text
-            self.landscapeConstraints.append(lc)
+            self.generateConstraints(standardButton: button)
         }
-        
-        self.configureStandardButtons(standardRowButtons, rowIndex: rowIndex)
     }
     
-    /// We configure standard buttons' constraints a little differently, because it has a double width button
-    private func configureStandardButtons(_ standardRowButtons: [ButtonView], rowIndex: Int) {
-        if rowIndex == 0 {
-            assert(!standardRowButtons.isEmpty)
+    private func generateConstraints(scientificButton button: ButtonView) {
+        // we don't show scientific buttons in portrait mode, but this constraint
+        // make the visual transition during orientation change smooth
+        let portrait = button.heightAnchor.constraint(equalTo: button.widthAnchor)
+        portrait.identifier = button.buttonConfiguration.text
+        self.portraitConstraints.append(portrait)
+        
+        let landscape = button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: Constants.buttonAspectRatio)
+        landscape.identifier = button.buttonConfiguration.text
+        self.landscapeConstraints.append(landscape)
+    }
+    
+    private func generateConstraints(standardButton button: ButtonView) {
+        // We setup height and width constraints for the first button and
+        // then constrain the other buttons in relation to it.
+        guard let firstStandardButton = self.firstStandardButton else {
+            // we are the first button
+            self.firstStandardButton = button
             
-            guard let firstStandardButton = standardRowButtons.first else { return }
-            self.firstStandardButton = firstStandardButton
-            do {
-                let pc = firstStandardButton.widthAnchor.constraint(equalTo: firstStandardButton.heightAnchor)
-                pc.identifier = firstStandardButton.buttonConfiguration.text
-                self.portraitConstraints.append(pc)
-                
-                let lc = firstStandardButton.heightAnchor.constraint(equalTo: firstStandardButton.widthAnchor, multiplier: Constants.buttonAspectRatio)
-                lc.identifier = firstStandardButton.buttonConfiguration.text
-                self.landscapeConstraints.append(lc)
-            }
+            let portrait = button.widthAnchor.constraint(equalTo: button.heightAnchor)
+            portrait.identifier = button.buttonConfiguration.text
+            self.portraitConstraints.append(portrait)
+            
+            let landscape = button.heightAnchor.constraint(equalTo: button.widthAnchor, multiplier: Constants.buttonAspectRatio)
+            landscape.identifier = button.buttonConfiguration.text
+            self.landscapeConstraints.append(landscape)
+            
+            return
         }
         
-        // skip the first button on row 0,
-        // skip the first button on row 4 (it should take double width - what is what
-        // we want - automatically when we don't give it constraints)
-        let dropCount = (rowIndex == 0 || rowIndex == 4) ? 1 : 0
-        standardRowButtons.dropFirst(dropCount).forEach { button in
-            let widthConstraint = button.widthAnchor.constraint(equalTo: firstStandardButton.widthAnchor)
-            let heightConstraint = button.heightAnchor.constraint(equalTo: firstStandardButton.heightAnchor)
-            widthConstraint.identifier = button.buttonConfiguration.text
-            heightConstraint.identifier = button.buttonConfiguration.text
-            
-            widthConstraint.isActive = true
-            heightConstraint.isActive = true
-        }
+        // don't set constraints on the double width button (and it will get resized appropriately)
+        if button.buttonConfiguration.id == .zero { return }
+        
+        let widthConstraint = button.widthAnchor.constraint(equalTo: firstStandardButton.widthAnchor)
+        let heightConstraint = button.heightAnchor.constraint(equalTo: firstStandardButton.heightAnchor)
+        widthConstraint.identifier = button.buttonConfiguration.text
+        heightConstraint.identifier = button.buttonConfiguration.text
+        
+        widthConstraint.isActive = true
+        heightConstraint.isActive = true
     }
     
     private func activateConstraints(for orientation: InterfaceOrientation) {

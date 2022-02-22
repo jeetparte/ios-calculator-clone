@@ -7,7 +7,7 @@
 
 import Foundation
 
-let standardButtons: [[ButtonConfiguration]] = [
+let standardButtonConfigurations: [[ButtonConfiguration]] = [
     // Row 1
     [
         ButtonConfiguration(id: .clear, text: "AC", color: .standardButtonProminent),
@@ -44,7 +44,7 @@ let standardButtons: [[ButtonConfiguration]] = [
     ],
 ]
 
-let scientificButtons: [[ButtonConfiguration]] = [
+let scientificButtonConfigurations: [[ButtonConfiguration]] = [
     // Row 1
     [
         ButtonConfiguration(id: .leftParanthesis, text: "(", color: .scientificButtonColor),
