@@ -29,7 +29,7 @@ enum ButtonColor {
     case standardButtonColor
     case standardButtonProminent
     case scientificButtonColor
-    case scientificButtonProminent
+    case scientificButtonSelected // * This is a transient state unlike the rest.
 }
 
 enum ButtonID {

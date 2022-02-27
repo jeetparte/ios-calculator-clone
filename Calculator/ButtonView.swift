@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ButtonView: UIView {
+class ButtonView: HighlightableBackgroundView {
     var buttonConfiguration: ButtonConfiguration
     
     var showsAlternateKey: Bool = false // default
@@ -15,36 +15,18 @@ class ButtonView: UIView {
     init(buttonConfiguration: ButtonConfiguration) {
         self.buttonConfiguration = buttonConfiguration
         
-        super.init(frame: .zero)
-        
-        self.setBackgroundColor()
-        
+        let backgroundColors = Self.getBackgroundColors(for: buttonConfiguration)
+        super.init(normalBackgroundColor: backgroundColors.normal,
+                   highlightedBackgroundColor: backgroundColors.highlighted)
+                
 //        self.layer.borderColor = UIColor.systemRed.cgColor
 //        self.layer.borderWidth = 1.0
         
         self.setupSubviews()
         
-        let tapGR = UITapGestureRecognizer(target: self, action: #selector(self.tap))
-        self.addGestureRecognizer(tapGR)
-    }
-    
-    // Colors for the default, i.e. unhighlighted state
-    private func setBackgroundColor() {
-        let backgroundColor: UIColor
-        switch buttonConfiguration.color {
-        case .accentColor:
-            backgroundColor = UIColor(named: "ButtonAccentColor")!
-        case .scientificButtonColor:
-            backgroundColor = UIColor(named: "ScientificButtonColor")!
-        case .scientificButtonProminent:
-            backgroundColor = UIColor(named: "ScientificButtonProminentColor")!
-        case .standardButtonColor:
-            backgroundColor =  UIColor(named: "StandardButtonColor")!
-        case .standardButtonProminent:
-            backgroundColor = UIColor(named: "StandardButtonProminentColor")!
-        }
-        
-        self.backgroundColor = backgroundColor
+        let lp = UILongPressGestureRecognizer(target: self, action: #selector(self.tap))
+        lp.minimumPressDuration = 0.0
+        self.addGestureRecognizer(lp)
     }
     
     override func layoutSubviews() {
@@ -54,8 +36,17 @@ class ButtonView: UIView {
 //        self.layer.cornerCurve = .continuous
     }
     
-    @objc func tap() {
-        print("tapped \(buttonConfiguration.text)")
+    @objc func tap(_ sender: UILongPressGestureRecognizer) {
+        switch sender.state {
+        case .began:
+            self.state = .higlighted
+        case .changed:
+            break // TODO
+        case .ended:
+            self.state = .normal
+        default:
+            break
+        }
     }
     
     required init?(coder: NSCoder) {
@@ -83,4 +74,31 @@ class ButtonView: UIView {
     }
     */
 
+}
+
+extension ButtonView {
+    private static func getBackgroundColors(for configuration: ButtonConfiguration) ->
+    (normal: UIColor?, highlighted: UIColor?) {
+        var normalBackgroundColor: UIColor? = nil
+        var highlightedBackgroundColor: UIColor? = nil
+        
+        switch configuration.color {
+        case .accentColor:
+            normalBackgroundColor = UIColor(named: "ButtonAccentColor")!
+            highlightedBackgroundColor = UIColor(named: "ButtonAccentColorHighlighted")!
+        case .scientificButtonColor:
+            normalBackgroundColor = UIColor(named: "ScientificButtonColor")!
+            highlightedBackgroundColor = UIColor(named: "ScientificButtonColorHighlighted")!
+        case .scientificButtonSelected:
+            fatalError("unhandled case") // TODO
+        case .standardButtonColor:
+            normalBackgroundColor =  UIColor(named: "StandardButtonColor")!
+            highlightedBackgroundColor = UIColor(named: "StandardButtonColorHighlighted")!
+        case .standardButtonProminent:
+            normalBackgroundColor = UIColor(named: "StandardButtonProminentColor")!
+            highlightedBackgroundColor = UIColor(named: "StandardButtonProminentColorHighlighted")!
+        }
+        
+        return (normalBackgroundColor, highlightedBackgroundColor)
+    }
 }

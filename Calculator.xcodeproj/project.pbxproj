@@ -18,6 +18,7 @@
 		CE24268427B16A5B00503A96 /* ButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE24268327B16A5B00503A96 /* ButtonView.swift */; };
 		CE31B4EF27B965C600C40D12 /* ButtonConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE31B4EE27B965C600C40D12 /* ButtonConfiguration.swift */; };
 		CEA7B85D27B57B04002325EF /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA7B85C27B57B04002325EF /* Utilities.swift */; };
+		CEEC737127C9286C00CEE635 /* HighlightableBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 		CE24268327B16A5B00503A96 /* ButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonView.swift; sourceTree = "<group>"; };
 		CE31B4EE27B965C600C40D12 /* ButtonConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonConfiguration.swift; sourceTree = "<group>"; };
 		CEA7B85C27B57B04002325EF /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightableBackgroundView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +75,7 @@
 				CE1028C627BA98E000BB7D05 /* Buttons.swift */,
 				CE31B4EE27B965C600C40D12 /* ButtonConfiguration.swift */,
 				CE24268327B16A5B00503A96 /* ButtonView.swift */,
+				CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */,
 				CEA7B85C27B57B04002325EF /* Utilities.swift */,
 				CE24267327B1522C00503A96 /* Main.storyboard */,
 				CE24267627B1522D00503A96 /* Assets.xcassets */,
@@ -160,6 +163,7 @@
 				CE31B4EF27B965C600C40D12 /* ButtonConfiguration.swift in Sources */,
 				CE24268227B1609E00503A96 /* ButtonsGridView.swift in Sources */,
 				CE24267027B1522C00503A96 /* SceneDelegate.swift in Sources */,
+				CEEC737127C9286C00CEE635 /* HighlightableBackgroundView.swift in Sources */,
 				CE1028C727BA98E000BB7D05 /* Buttons.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
