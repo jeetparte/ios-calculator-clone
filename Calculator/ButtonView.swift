@@ -23,10 +23,6 @@ class ButtonView: HighlightableBackgroundView {
 //        self.layer.borderWidth = 1.0
         
         self.setupSubviews()
-        
-        let lp = UILongPressGestureRecognizer(target: self, action: #selector(self.tap))
-        lp.minimumPressDuration = 0.0
-        self.addGestureRecognizer(lp)
     }
     
     override func layoutSubviews() {
@@ -36,17 +32,8 @@ class ButtonView: HighlightableBackgroundView {
 //        self.layer.cornerCurve = .continuous
     }
     
-    @objc func tap(_ sender: UILongPressGestureRecognizer) {
-        switch sender.state {
-        case .began:
-            self.state = .higlighted
-        case .changed:
-            break // TODO
-        case .ended:
-            self.state = .normal
-        default:
-            break
-        }
+    func buttonTap() {
+        print("tapped \(self.buttonConfiguration.text)")
     }
     
     required init?(coder: NSCoder) {

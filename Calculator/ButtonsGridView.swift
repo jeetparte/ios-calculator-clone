@@ -38,6 +38,10 @@ class ButtonsGridView: UIStackView {
 //        self.layer.borderColor = UIColor.red.cgColor
                         
         self.setupSubviews()
+        
+        let longPressButtonTapGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.buttonPressOrDrag(_:)));
+        longPressButtonTapGestureRecognizer.minimumPressDuration = 0.0
+        self.addGestureRecognizer(longPressButtonTapGestureRecognizer)
     }
     
     required init(coder: NSCoder) {
@@ -56,6 +60,14 @@ class ButtonsGridView: UIStackView {
             self.setButtonSpacing(for: newOrientation)
         default: break
         }
+
+        // clear selection from previous orientation
+        if self.currentlyHighlightedView != nil {
+            self.currentlyHighlightedView!.highlightState = .normal
+            self.currentlyHighlightedView = nil
+        }
+        // clear cached views as onscreen views have changed
+        _cachedHighlightableViews.removeAll()
     }
     
     private func setupSubviews() {
@@ -176,6 +188,86 @@ class ButtonsGridView: UIStackView {
             if let row = $0 as? UIStackView, row.axis == .horizontal {
                 row.spacing = horizontalSpacing
             }
+        }
+    }
+    
+    // Should we cache on first button press or on every orientation change (plus app launch)?
+    // Should we cache at all?
+    var _cachedHighlightableViews: [HighlightableBackgroundView] = []
+    var highlightableViews: [HighlightableBackgroundView] {
+        get {
+            if _cachedHighlightableViews.isEmpty {
+                let highlightableViews = self.arrangedSubviews.flatMap { buttonRow in
+                    return buttonRow.subviews.compactMap { button in
+                        // filter out hidden views
+                        return button.isHidden ? nil : (button as? HighlightableBackgroundView)
+                    }
+                }
+                _cachedHighlightableViews = highlightableViews
+                print(_cachedHighlightableViews.count)
+            }
+            return _cachedHighlightableViews
+        }
+    }
+    var currentlyHighlightedView: HighlightableBackgroundView? {
+        willSet {
+            if newValue == nil {
+                // make sure the view has been unhighlighted
+                self.currentlyHighlightedView?.highlightState = .normal
+            }
+        }
+    }
+    
+    @objc func buttonPressOrDrag(_ sender: UILongPressGestureRecognizer) {
+        func highlightButtonUnderTouch() {
+            for candidate in highlightableViews {
+                let touchLocation = sender.location(in: candidate)
+                let isTouchInside = candidate.point(inside: touchLocation, with: nil)
+                
+                if isTouchInside {
+                    candidate.highlightState = .active
+                    self.currentlyHighlightedView = candidate
+                    break
+                }
+            }
+        }
+                
+        switch sender.state {
+        case .began:
+            // touch down event -
+            // if there's a button under this touch, highlight it and
+            // make it the "currently highlighted button"
+            highlightButtonUnderTouch()
+        case .changed:
+            // drag events -
+            // see if the touch is still on the curently highlighted button
+            if let currentButton = self.currentlyHighlightedView {
+                let location = sender.location(in: currentButton)
+                let isStillOnCurrentButton = currentButton.point(inside: location, with: nil)
+                // if it is, do nothing
+                if isStillOnCurrentButton { return }
+                // if it isn't, unhighlight the button
+                currentButton.highlightState = .normal
+                self.currentlyHighlightedView = nil
+                // and check if the touch is on another button (below)
+            }
+                        
+            // if there is no currently highlighted button, check if the touch is on another button
+            assert(self.currentlyHighlightedView == nil)
+            highlightButtonUnderTouch()
+        case .ended:
+            // touch up event -
+            // for the button under this touch,
+            // fire its action handler and unhighlight it
+            if let button = self.currentlyHighlightedView {
+                assert(!button.isHidden, "Tried to activate hidden button.")
+                (button as? ButtonView)?.buttonTap()
+                
+                button.highlightState = .normal
+                self.currentlyHighlightedView = nil
+            }
+        default:
+            break
         }
     }
     
