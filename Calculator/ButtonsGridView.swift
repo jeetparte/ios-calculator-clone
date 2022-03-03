@@ -92,7 +92,7 @@ class ButtonsGridView: UIStackView {
     
     private func generateConstraints(scientificButton button: ButtonView) {
         // we don't show scientific buttons in portrait mode, but this constraint
-        // make the visual transition during orientation change smooth
+        // makes the visual transition during orientation change smooth
         let portrait = button.heightAnchor.constraint(equalTo: button.widthAnchor)
         portrait.identifier = button.buttonConfiguration.text
         self.portraitConstraints.append(portrait)
