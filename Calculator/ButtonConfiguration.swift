@@ -14,14 +14,21 @@ struct ButtonConfiguration {
     let alternateID: ButtonID?
     let alternateText: String?
     var color: ButtonColor
+    let textType: ButtonTextType
     
-    init(id: ButtonID, text: String, alternateID: ButtonID? = nil, alternateText: String? = nil, color: ButtonColor) {
+    init(id: ButtonID, text: String, alternateID: ButtonID? = nil, alternateText: String? = nil, color: ButtonColor, textType: ButtonTextType = .label) {
         self.id = id
         self.text = text
         self.alternateID = alternateID
         self.alternateText = alternateText
         self.color = color
+        self.textType = textType
     }
+}
+
+enum ButtonTextType {
+    case label
+    case image
 }
 
 enum ButtonColor {

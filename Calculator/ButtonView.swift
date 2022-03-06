@@ -13,10 +13,13 @@ class ButtonView: HighlightableBackgroundView {
     var showsAlternateKey: Bool = false // default
     
     var label: UILabel!
+    var imageView: UIImageView!
+    
+    private var previousFontSize: CGFloat?
     
     init(buttonConfiguration: ButtonConfiguration) {
         self.buttonConfiguration = buttonConfiguration
-        
+
         // set the background for various states
         let backgroundColors = Self.getBackgroundColors(for: buttonConfiguration)
         super.init(normalBackgroundColor: backgroundColors.normal,
@@ -25,9 +28,16 @@ class ButtonView: HighlightableBackgroundView {
 //        self.layer.borderColor = UIColor.systemRed.cgColor
 //        self.layer.borderWidth = 1.0
         
-        self.initializeLabel()
-        // update label whenever an orientation change notification is posted
-        NotificationCenter.default.addObserver(self, selector: #selector(self.updateLabel(_:)), name: ButtonsGridView.SharedConstants.orientationChangeNotificationName, object: nil)
+        switch buttonConfiguration.textType {
+        case .image:
+            self.initializeImage()
+            // update image whenever an orientation change notification is posted
+            NotificationCenter.default.addObserver(self, selector: #selector(self.updateImage(_:)), name: ButtonsGridView.SharedConstants.orientationChangeNotificationName, object: nil)
+        case .label:
+            self.initializeLabel()
+            // update label whenever an orientation change notification is posted
+            NotificationCenter.default.addObserver(self, selector: #selector(self.updateLabel(_:)), name: ButtonsGridView.SharedConstants.orientationChangeNotificationName, object: nil)
+        }
     }
     
     override func layoutSubviews() {
@@ -45,6 +55,7 @@ class ButtonView: HighlightableBackgroundView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Label
     private func initializeLabel() {
         let label = UILabel()
         self.label = label
@@ -57,7 +68,6 @@ class ButtonView: HighlightableBackgroundView {
         label.textColor = self.buttonConfiguration.color == .standardButtonProminent ? .black : .white
     }
     
-    var previousFontSize: CGFloat?
     @objc func updateLabel(_ orientationChangeNotification: Notification) {
         guard let userInfo = orientationChangeNotification.userInfo,
               let newOrientation = userInfo[ButtonsGridView.SharedConstants.newOrientationUserInfoKey] as?
@@ -88,6 +98,51 @@ class ButtonView: HighlightableBackgroundView {
         self.previousFontSize = fontSize
     }
     
+    //MARK: - Image
+    private func initializeImage() {
+        let imageView = UIImageView()
+        self.imageView = imageView
+        self.addSubview(imageView)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+        imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+                
+        imageView.image = UIImage(systemName: buttonConfiguration.text)
+        imageView.tintColor  = self.buttonConfiguration.color == .standardButtonProminent ? .black : .white
+    }
+    
+    @objc func updateImage(_ orientationChangeNotification: Notification) {
+        guard let userInfo = orientationChangeNotification.userInfo,
+              let newOrientation = userInfo[ButtonsGridView.SharedConstants.newOrientationUserInfoKey] as?
+                InterfaceOrientation else {
+                    assertionFailure(
+                        "An orientation-change notification was posted without information about the new orientation. " +
+                        "Cannot decide buttons' image appearance for unknown orientation.")
+                    return
+                }
+        
+        let fontSize = Self.getFontSize(for: buttonConfiguration.color, orientation: newOrientation)
+        if self.previousFontSize == nil {
+            // setting font for the first time
+            let weight: UIFont.Weight =
+            [.standardButtonProminent, .accentColor]
+                .contains(self.buttonConfiguration.color) ? .medium : .regular
+            self.imageView.preferredSymbolConfiguration = .init(pointSize: fontSize, weight: weight.symbolWeight(), scale: .medium)
+            self.previousFontSize = fontSize
+            return
+        }
+        
+        guard fontSize != self.previousFontSize else { return }
+        // visually, the font size changes abruptly, so we use this transition animation to smooth it out
+        UIView.transition(with: imageView, duration: 0.0, options: [.transitionCrossDissolve]) {
+            let newConfiguration = UIImage.SymbolConfiguration(pointSize: fontSize)
+            self.imageView.preferredSymbolConfiguration = self.imageView.preferredSymbolConfiguration?.applying(newConfiguration)
+        }
+        self.previousFontSize = fontSize
+    }
+    
+    // MARK: -
     private static func getFontSize(for buttonColor: ButtonColor, orientation: InterfaceOrientation) -> CGFloat {
         switch buttonColor {
         // Special cases
@@ -97,6 +152,13 @@ class ButtonView: HighlightableBackgroundView {
             }
             if orientation == .landscape {
                 return Constants.Landscape.standardButtonProminentFontSize
+            }
+        case .accentColor:
+            if orientation == .portrait {
+                return Constants.Portrait.accentButtonFontSize
+            }
+            if orientation == .landscape {
+                return Constants.Landscape.accentButtonFontSize
             }
         // General cases
         case _ where buttonColor.isStandard:
@@ -123,10 +185,12 @@ class ButtonView: HighlightableBackgroundView {
         struct Portrait {
             static let standardButtonFontSize: CGFloat = 40
             static let standardButtonProminentFontSize: CGFloat = 34
+            static let accentButtonFontSize: CGFloat = 34
         }
         struct Landscape {
             static let standardButtonFontSize: CGFloat = 24
             static let standardButtonProminentFontSize: CGFloat = 24
+            static let accentButtonFontSize: CGFloat = 22
         }
     }
 }

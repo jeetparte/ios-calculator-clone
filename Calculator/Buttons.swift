@@ -11,36 +11,36 @@ let standardButtonConfigurations: [[ButtonConfiguration]] = [
     // Row 1
     [
         ButtonConfiguration(id: .clear, text: "AC", color: .standardButtonProminent),
-        ButtonConfiguration(id: .signChange, text: "+/-", color: .standardButtonProminent),
-        ButtonConfiguration(id: .percentage, text: "%", color: .standardButtonProminent),
-        ButtonConfiguration(id: .division, text: "/", color: .accentColor),
+        ButtonConfiguration(id: .signChange, text: "plus.forwardslash.minus", color: .standardButtonProminent, textType: .image),
+        ButtonConfiguration(id: .percentage, text: "%", color: .standardButtonProminent), //percent
+        ButtonConfiguration(id: .division, text: "divide", color: .accentColor, textType: .image),
     ],
     // Row 2
     [
         ButtonConfiguration(id: .seven, text: "7", color: .standardButtonColor),
         ButtonConfiguration(id: .eight, text: "8", color: .standardButtonColor),
         ButtonConfiguration(id: .nine, text: "9", color: .standardButtonColor),
-        ButtonConfiguration(id: .multiplication, text: "x", color: .accentColor),
+        ButtonConfiguration(id: .multiplication, text: "multiply", color: .accentColor, textType: .image),
     ],
     // Row 3
     [
         ButtonConfiguration(id: .four, text: "4", color: .standardButtonColor),
         ButtonConfiguration(id: .five, text: "5", color: .standardButtonColor),
         ButtonConfiguration(id: .six, text: "6", color: .standardButtonColor),
-        ButtonConfiguration(id: .subtraction, text: "-", color: .accentColor),
+        ButtonConfiguration(id: .subtraction, text: "minus", color: .accentColor, textType: .image),
     ],
     // Row 4
     [
         ButtonConfiguration(id: .one, text: "1", color: .standardButtonColor),
         ButtonConfiguration(id: .two, text: "2", color: .standardButtonColor),
         ButtonConfiguration(id: .three, text: "3", color: .standardButtonColor),
-        ButtonConfiguration(id: .addition, text: "+", color: .accentColor),
+        ButtonConfiguration(id: .addition, text: "plus", color: .accentColor, textType: .image),
     ],
     // Row 5
     [
         ButtonConfiguration(id: .zero, text: "0", color: .standardButtonColor),
         ButtonConfiguration(id: .decimalPoint, text: ".", color: .standardButtonColor),
-        ButtonConfiguration(id: .equals, text: "=", color: .accentColor),
+        ButtonConfiguration(id: .equals, text: "equal", color: .accentColor, textType: .image),
     ],
 ]
 

@@ -103,7 +103,7 @@ class ViewController: UIViewController {
         // Results view
         self.resultsView = UIView()
         v.addSubview(resultsView)
-        resultsView.backgroundColor = .systemPurple.withAlphaComponent(0.3)
+//        resultsView.backgroundColor = .systemPurple.withAlphaComponent(0.3)
         resultsView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             resultsView.leadingAnchor.constraint(equalTo: buttonsGridView.leadingAnchor),
