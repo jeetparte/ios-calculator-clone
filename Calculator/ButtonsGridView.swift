@@ -12,6 +12,7 @@ class ButtonsGridView: UIStackView {
     var portraitConstraints = [NSLayoutConstraint]()
     var landscapeConstraints = [NSLayoutConstraint]()
     
+    // TODO can we simplify this to a 1D array?
     var allScientificButtons: [[UIView]] = .init(repeating: [], count: 5) // five rows
     var firstStandardButton: ButtonView?
     
@@ -68,6 +69,9 @@ class ButtonsGridView: UIStackView {
         }
         // clear cached views as onscreen views have changed
         _cachedHighlightableViews.removeAll()
+        
+        // inform subviews
+        NotificationCenter.default.post(name: SharedConstants.orientationChangeNotificationName, object: self, userInfo: [SharedConstants.newOrientationUserInfoKey: newOrientation])
     }
     
     private func setupSubviews() {
@@ -282,5 +286,10 @@ class ButtonsGridView: UIStackView {
         }
         
         static let buttonAspectRatio: CGFloat = 0.83 // height:width
+    }
+    
+    struct SharedConstants {
+        static let orientationChangeNotificationName = Notification.Name("orientationChange")
+        static let newOrientationUserInfoKey = "newOrientation"
     }
 }

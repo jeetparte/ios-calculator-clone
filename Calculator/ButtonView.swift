@@ -12,9 +12,12 @@ class ButtonView: HighlightableBackgroundView {
     
     var showsAlternateKey: Bool = false // default
     
+    var label: UILabel!
+    
     init(buttonConfiguration: ButtonConfiguration) {
         self.buttonConfiguration = buttonConfiguration
         
+        // set the background for various states
         let backgroundColors = Self.getBackgroundColors(for: buttonConfiguration)
         super.init(normalBackgroundColor: backgroundColors.normal,
                    highlightedBackgroundColor: backgroundColors.highlighted)
@@ -22,7 +25,9 @@ class ButtonView: HighlightableBackgroundView {
 //        self.layer.borderColor = UIColor.systemRed.cgColor
 //        self.layer.borderWidth = 1.0
         
-        self.setupSubviews()
+        self.initializeLabel()
+        // update label whenever an orientation change notification is posted
+        NotificationCenter.default.addObserver(self, selector: #selector(self.updateLabel(_:)), name: ButtonsGridView.SharedConstants.orientationChangeNotificationName, object: nil)
     }
     
     override func layoutSubviews() {
@@ -40,27 +45,74 @@ class ButtonView: HighlightableBackgroundView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setupSubviews() {
+    private func initializeLabel() {
         let label = UILabel()
-        label.text = self.showsAlternateKey ? self.buttonConfiguration.alternateText :  self.buttonConfiguration.text
-        label.font = UIFont.boldSystemFont(ofSize: 20)
-        
+        self.label = label
         self.addSubview(label)
-        label.textColor = .lightText // TODO review later
         label.translatesAutoresizingMaskIntoConstraints = false
         label.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
         label.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+        
+        label.text = self.showsAlternateKey ? self.buttonConfiguration.alternateText :  self.buttonConfiguration.text
+        label.textColor = .white // TODO review later
     }
     
-
-    /*
-    // Only override draw() if you perform custom drawing.
-    // An empty implementation adversely affects performance during animation.
-    override func draw(_ rect: CGRect) {
-        // Drawing code
+    var previousFontSize: CGFloat?
+    @objc func updateLabel(_ orientationChangeNotification: Notification) {
+        guard let userInfo = orientationChangeNotification.userInfo,
+              let newOrientation = userInfo[ButtonsGridView.SharedConstants.newOrientationUserInfoKey] as?
+                InterfaceOrientation else {
+                    assertionFailure(
+                        "An orientation-change notification was posted without information about the new orientation. " +
+                        "Cannot decide buttons' label appearance for unknown orientation.")
+                    return
+                }
+        
+        let fontSize = self.getFontSize(for: buttonConfiguration.color, orientation: newOrientation)
+        if self.previousFontSize == nil {
+            // setting font for the first time
+            self.label.font = UIFont.systemFont(ofSize: fontSize)
+            self.previousFontSize = fontSize
+            return
+        }
+        
+        guard fontSize != self.previousFontSize else { return }
+        // visually, the font size changes abruptly, so we use this transition animation to smooth it out
+        UIView.transition(with: label, duration: 0.0, options: [.transitionCrossDissolve]) {
+            self.label.font = self.label.font.withSize(fontSize)
+        }
+        self.previousFontSize = fontSize
     }
-    */
-
+    
+    private func getFontSize(for buttonColor: ButtonColor, orientation: InterfaceOrientation) -> CGFloat {
+        switch buttonColor {
+        case _ where buttonColor.isStandard:
+            if orientation == .portrait {
+                return Constants.Portrait.standardButtonFontSize
+            }
+            if orientation == .landscape {
+                return Constants.Landscape.standardButtonFontSize
+            }
+        case _ where buttonColor.isScientific:
+            return Constants.Landscape.scientificButtonFontSize
+        default:
+            break
+        }
+        assertionFailure(
+            "Failed to assign appropriate font size for button color \(buttonColor)." +
+            "Will fall back on default system font size.")
+        return UIFont.systemFontSize
+    }
+    
+    private struct Constants {
+        struct Portrait {
+            static let standardButtonFontSize: CGFloat = 40
+        }
+        struct Landscape {
+            static let standardButtonFontSize: CGFloat = 24
+            static let scientificButtonFontSize: CGFloat = 16
+        }
+    }
 }
 
 extension ButtonView {

@@ -30,6 +30,16 @@ enum ButtonColor {
     case standardButtonProminent
     case scientificButtonColor
     case scientificButtonSelected // * This is a transient state unlike the rest.
+    
+    // MARK: - Utilities
+    private static let standardColors: [ButtonColor] = [.accentColor, .standardButtonColor, .standardButtonProminent]
+    var isStandard: Bool {
+        return Self.standardColors.contains(self)
+    }
+    private static let scientificColors: [ButtonColor] = [.scientificButtonColor, .scientificButtonSelected]
+    var isScientific: Bool {
+        return Self.scientificColors.contains(self)
+    }
 }
 
 enum ButtonID {
