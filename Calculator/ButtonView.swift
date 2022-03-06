@@ -54,7 +54,7 @@ class ButtonView: HighlightableBackgroundView {
         label.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
         
         label.text = self.showsAlternateKey ? self.buttonConfiguration.alternateText :  self.buttonConfiguration.text
-        label.textColor = .white // TODO review later
+        label.textColor = self.buttonConfiguration.color == .standardButtonProminent ? .black : .white
     }
     
     var previousFontSize: CGFloat?
@@ -68,10 +68,14 @@ class ButtonView: HighlightableBackgroundView {
                     return
                 }
         
-        let fontSize = self.getFontSize(for: buttonConfiguration.color, orientation: newOrientation)
+        let fontSize = Self.getFontSize(for: buttonConfiguration.color, orientation: newOrientation)
         if self.previousFontSize == nil {
             // setting font for the first time
-            self.label.font = UIFont.systemFont(ofSize: fontSize)
+            
+            let weight: UIFont.Weight =
+            [.standardButtonProminent, .accentColor]
+                .contains(self.buttonConfiguration.color) ? .medium : .regular
+            self.label.font = UIFont.systemFont(ofSize: fontSize, weight: weight)
             self.previousFontSize = fontSize
             return
         }
@@ -84,8 +88,17 @@ class ButtonView: HighlightableBackgroundView {
         self.previousFontSize = fontSize
     }
     
-    private func getFontSize(for buttonColor: ButtonColor, orientation: InterfaceOrientation) -> CGFloat {
+    private static func getFontSize(for buttonColor: ButtonColor, orientation: InterfaceOrientation) -> CGFloat {
         switch buttonColor {
+        // Special cases
+        case .standardButtonProminent:
+            if orientation == .portrait {
+                return Constants.Portrait.standardButtonProminentFontSize
+            }
+            if orientation == .landscape {
+                return Constants.Landscape.standardButtonProminentFontSize
+            }
+        // General cases
         case _ where buttonColor.isStandard:
             if orientation == .portrait {
                 return Constants.Portrait.standardButtonFontSize
@@ -94,7 +107,7 @@ class ButtonView: HighlightableBackgroundView {
                 return Constants.Landscape.standardButtonFontSize
             }
         case _ where buttonColor.isScientific:
-            return Constants.Landscape.scientificButtonFontSize
+            return Constants.scientificButtonFontSize
         default:
             break
         }
@@ -105,12 +118,15 @@ class ButtonView: HighlightableBackgroundView {
     }
     
     private struct Constants {
+        static let scientificButtonFontSize: CGFloat = 16
+        
         struct Portrait {
             static let standardButtonFontSize: CGFloat = 40
+            static let standardButtonProminentFontSize: CGFloat = 34
         }
         struct Landscape {
             static let standardButtonFontSize: CGFloat = 24
-            static let scientificButtonFontSize: CGFloat = 16
+            static let standardButtonProminentFontSize: CGFloat = 24
         }
     }
 }
