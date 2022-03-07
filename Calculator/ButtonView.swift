@@ -49,7 +49,7 @@ class ButtonView: HighlightableBackgroundView {
     }
     
     func buttonTap() {
-        print("tapped \(self.buttonConfiguration.text)")
+//        print("tapped \(self.buttonConfiguration.text)")
     }
     
     required init?(coder: NSCoder) {

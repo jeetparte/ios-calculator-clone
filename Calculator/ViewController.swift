@@ -8,6 +8,7 @@
 import UIKit
 
 class ViewController: UIViewController {
+    var displayLabel: UILabel!
     var resultsView: UIView!
     var buttonsGridView: ButtonsGridView!
     
@@ -22,7 +23,7 @@ class ViewController: UIViewController {
 
         // this app remains in dark mode
         self.view.backgroundColor = .systemBackground
-//        self.overrideUserInterfaceStyle = .dark // temp
+        self.overrideUserInterfaceStyle = .dark
         
         self.setupSubviews()
     }
@@ -110,6 +111,33 @@ class ViewController: UIViewController {
             resultsView.trailingAnchor.constraint(equalTo: buttonsGridView.trailingAnchor),
             buttonsGridView.topAnchor.constraint(equalToSystemSpacingBelow: resultsView.bottomAnchor, multiplier: 1),
             resultsView.topAnchor.constraint(equalTo: v.safeAreaLayoutGuide.topAnchor)
+        ])
+        self.setupDisplayLabel()
+    }
+    
+    private func setupDisplayLabel() {
+        self.displayLabel = UILabel()
+        self.resultsView.addSubview(displayLabel)
+        
+        // TODO fix issue on landscape, label is wider than it needs to be
+//        displayLabel.backgroundColor = .systemYellow // debugging
+        displayLabel.textAlignment = .right // makes it a bit better
+        
+        displayLabel.adjustsFontSizeToFitWidth = true
+        displayLabel.minimumScaleFactor = 0.5 // tweak later
+                
+        let number = 123_456_125
+        displayLabel.text = NumberFormatter.localizedString(from: NSNumber(value: number), number: .decimal)
+        displayLabel.textColor = .white
+        displayLabel.font = UIFont.systemFont(ofSize: 86, weight: .light)
+        
+        displayLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            // TODO might want to vary constraints for landscape vs portrait
+            displayLabel.trailingAnchor.constraint(equalTo: resultsView.trailingAnchor, constant: -8),
+            displayLabel.bottomAnchor.constraint(equalTo: resultsView.bottomAnchor, constant: -8),
+            displayLabel.leadingAnchor.constraint(greaterThanOrEqualTo: resultsView.leadingAnchor, constant: 8),
+            displayLabel.topAnchor.constraint(greaterThanOrEqualTo: resultsView.topAnchor, constant: 0)
         ])
     }
     
