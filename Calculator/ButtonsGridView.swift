@@ -295,9 +295,4 @@ class ButtonsGridView: UIStackView {
         
         static let buttonAspectRatio: CGFloat = 0.83 // height:width
     }
-    
-    struct SharedConstants {
-        static let orientationChangeNotificationName = Notification.Name("orientationChange")
-        static let newOrientationUserInfoKey = "newOrientation"
-    }
 }

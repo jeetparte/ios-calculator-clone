@@ -33,11 +33,11 @@ class ButtonView: HighlightableBackgroundView {
         case .image:
             self.initializeImage()
             // update image whenever an orientation change notification is posted
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updateImage(_:)), name: ButtonsGridView.SharedConstants.orientationChangeNotificationName, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.updateImage(_:)), name: SharedConstants.orientationChangeNotificationName, object: nil)
         case .label:
             self.initializeLabel()
             // update label whenever an orientation change notification is posted
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updateLabel(_:)), name: ButtonsGridView.SharedConstants.orientationChangeNotificationName, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.updateLabel(_:)), name: SharedConstants.orientationChangeNotificationName, object: nil)
         }
     }
     
@@ -71,7 +71,7 @@ class ButtonView: HighlightableBackgroundView {
     
     @objc func updateLabel(_ orientationChangeNotification: Notification) {
         guard let userInfo = orientationChangeNotification.userInfo,
-              let newOrientation = userInfo[ButtonsGridView.SharedConstants.newOrientationUserInfoKey] as?
+              let newOrientation = userInfo[SharedConstants.newOrientationUserInfoKey] as?
                 InterfaceOrientation else {
                     assertionFailure(
                         "An orientation-change notification was posted without information about the new orientation. " +
@@ -115,7 +115,7 @@ class ButtonView: HighlightableBackgroundView {
     
     @objc func updateImage(_ orientationChangeNotification: Notification) {
         guard let userInfo = orientationChangeNotification.userInfo,
-              let newOrientation = userInfo[ButtonsGridView.SharedConstants.newOrientationUserInfoKey] as?
+              let newOrientation = userInfo[SharedConstants.newOrientationUserInfoKey] as?
                 InterfaceOrientation else {
                     assertionFailure(
                         "An orientation-change notification was posted without information about the new orientation. " +

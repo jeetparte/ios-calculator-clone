@@ -1,8 +1,8 @@
 //
-//  Utilities.swift
+//  InterfaceOrientation.swift
 //  Calculator
 //
-//  Created by Jeet Parte on 10/02/22.
+//  Created by Jeet Parte on 07/03/22.
 //
 
 import Foundation
@@ -24,9 +24,4 @@ extension UIInterfaceOrientation {
             return .unknown
         }
     }
-}
-
-enum CalculationMode {
-    case standard
-    case scientific
 }

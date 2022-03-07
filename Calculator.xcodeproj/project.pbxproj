@@ -17,7 +17,9 @@
 		CE24268227B1609E00503A96 /* ButtonsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE24268127B1609E00503A96 /* ButtonsGridView.swift */; };
 		CE24268427B16A5B00503A96 /* ButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE24268327B16A5B00503A96 /* ButtonView.swift */; };
 		CE31B4EF27B965C600C40D12 /* ButtonConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE31B4EE27B965C600C40D12 /* ButtonConfiguration.swift */; };
-		CEA7B85D27B57B04002325EF /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA7B85C27B57B04002325EF /* Utilities.swift */; };
+		CE6DB67B27D5F67F00AD1667 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6DB67A27D5F67F00AD1667 /* Constants.swift */; };
+		CE6DB67E27D5F76600AD1667 /* InterfaceOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6DB67D27D5F76600AD1667 /* InterfaceOrientation.swift */; };
+		CE6DB68027D5F78800AD1667 /* CalculationMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6DB67F27D5F78800AD1667 /* CalculationMode.swift */; };
 		CEEC737127C9286C00CEE635 /* HighlightableBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */; };
 /* End PBXBuildFile section */
 
@@ -34,7 +36,9 @@
 		CE24268127B1609E00503A96 /* ButtonsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonsGridView.swift; sourceTree = "<group>"; };
 		CE24268327B16A5B00503A96 /* ButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonView.swift; sourceTree = "<group>"; };
 		CE31B4EE27B965C600C40D12 /* ButtonConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonConfiguration.swift; sourceTree = "<group>"; };
-		CEA7B85C27B57B04002325EF /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		CE6DB67A27D5F67F00AD1667 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		CE6DB67D27D5F76600AD1667 /* InterfaceOrientation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceOrientation.swift; sourceTree = "<group>"; };
+		CE6DB67F27D5F78800AD1667 /* CalculationMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationMode.swift; sourceTree = "<group>"; };
 		CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightableBackgroundView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -76,13 +80,23 @@
 				CE31B4EE27B965C600C40D12 /* ButtonConfiguration.swift */,
 				CE24268327B16A5B00503A96 /* ButtonView.swift */,
 				CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */,
-				CEA7B85C27B57B04002325EF /* Utilities.swift */,
+				CE6DB67C27D5F74300AD1667 /* Utilities */,
 				CE24267327B1522C00503A96 /* Main.storyboard */,
 				CE24267627B1522D00503A96 /* Assets.xcassets */,
 				CE24267827B1522D00503A96 /* LaunchScreen.storyboard */,
 				CE24267B27B1522D00503A96 /* Info.plist */,
 			);
 			path = Calculator;
+			sourceTree = "<group>";
+		};
+		CE6DB67C27D5F74300AD1667 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				CE6DB67A27D5F67F00AD1667 /* Constants.swift */,
+				CE6DB67D27D5F76600AD1667 /* InterfaceOrientation.swift */,
+				CE6DB67F27D5F78800AD1667 /* CalculationMode.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -156,11 +170,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEA7B85D27B57B04002325EF /* Utilities.swift in Sources */,
 				CE24267227B1522C00503A96 /* ViewController.swift in Sources */,
+				CE6DB67E27D5F76600AD1667 /* InterfaceOrientation.swift in Sources */,
 				CE24266E27B1522C00503A96 /* AppDelegate.swift in Sources */,
+				CE6DB68027D5F78800AD1667 /* CalculationMode.swift in Sources */,
 				CE24268427B16A5B00503A96 /* ButtonView.swift in Sources */,
 				CE31B4EF27B965C600C40D12 /* ButtonConfiguration.swift in Sources */,
+				CE6DB67B27D5F67F00AD1667 /* Constants.swift in Sources */,
 				CE24268227B1609E00503A96 /* ButtonsGridView.swift in Sources */,
 				CE24267027B1522C00503A96 /* SceneDelegate.swift in Sources */,
 				CEEC737127C9286C00CEE635 /* HighlightableBackgroundView.swift in Sources */,
