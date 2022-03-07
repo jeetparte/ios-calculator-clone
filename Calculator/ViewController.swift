@@ -132,7 +132,6 @@ class ViewController: UIViewController {
     
     override func willTransition(to newCollection: UITraitCollection, with coordinator: UIViewControllerTransitionCoordinator) {
         super.willTransition(to: newCollection, with: coordinator)
-        print("here")
         // Switch between standard and scientific mode on orientation change
         // (hide/show scientific buttons and swap constraints)
         let previousOrientation = self.view.window?.windowScene?.interfaceOrientation

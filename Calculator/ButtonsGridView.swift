@@ -208,7 +208,7 @@ class ButtonsGridView: UIStackView {
                     }
                 }
                 _cachedHighlightableViews = highlightableViews
-                print(_cachedHighlightableViews.count)
+//                print(_cachedHighlightableViews.count)
             }
             return _cachedHighlightableViews
         }
@@ -241,6 +241,7 @@ class ButtonsGridView: UIStackView {
             // touch down event -
             // if there's a button under this touch, highlight it and
             // make it the "currently highlighted button"
+            assert(self.currentlyHighlightedView == nil, "Expect this when we're just starting out.")
             highlightButtonUnderTouch()
         case .changed:
             // drag events -
@@ -270,7 +271,14 @@ class ButtonsGridView: UIStackView {
                 button.highlightState = .normal
                 self.currentlyHighlightedView = nil
             }
+        case .cancelled, .failed:
+            // this happens for example, in landscape, when a drag on buttons at
+            // the bottom turns into a swipe on the home indicator
+            
+            // just reset the state
+            self.currentlyHighlightedView = nil
         default:
+            assertionFailure("Possibly unhandled gesture recognizer state? State = \(sender.state.rawValue)")
             break
         }
     }

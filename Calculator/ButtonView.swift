@@ -29,6 +29,7 @@ class ButtonView: HighlightableBackgroundView {
 //        self.layer.borderWidth = 1.0
         
         switch buttonConfiguration.textType {
+        // TODO both of these are very similar; can we merge them?
         case .image:
             self.initializeImage()
             // update image whenever an orientation change notification is posted
