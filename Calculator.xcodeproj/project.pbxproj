@@ -75,11 +75,9 @@
 				CE24266D27B1522C00503A96 /* AppDelegate.swift */,
 				CE24266F27B1522C00503A96 /* SceneDelegate.swift */,
 				CE24267127B1522C00503A96 /* ViewController.swift */,
-				CE24268127B1609E00503A96 /* ButtonsGridView.swift */,
 				CE1028C627BA98E000BB7D05 /* Buttons.swift */,
 				CE31B4EE27B965C600C40D12 /* ButtonConfiguration.swift */,
-				CE24268327B16A5B00503A96 /* ButtonView.swift */,
-				CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */,
+				CE6DB68127D603A900AD1667 /* Views */,
 				CE6DB67C27D5F74300AD1667 /* Utilities */,
 				CE24267327B1522C00503A96 /* Main.storyboard */,
 				CE24267627B1522D00503A96 /* Assets.xcassets */,
@@ -97,6 +95,16 @@
 				CE6DB67F27D5F78800AD1667 /* CalculationMode.swift */,
 			);
 			path = Utilities;
+			sourceTree = "<group>";
+		};
+		CE6DB68127D603A900AD1667 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				CE24268127B1609E00503A96 /* ButtonsGridView.swift */,
+				CE24268327B16A5B00503A96 /* ButtonView.swift */,
+				CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
