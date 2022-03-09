@@ -100,8 +100,8 @@
 		CE6DB68127D603A900AD1667 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				CE24268127B1609E00503A96 /* ButtonsGridView.swift */,
 				CE24268327B16A5B00503A96 /* ButtonView.swift */,
+				CE24268127B1609E00503A96 /* ButtonsGridView.swift */,
 				CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */,
 			);
 			path = Views;

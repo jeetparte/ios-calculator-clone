@@ -71,7 +71,7 @@ class ButtonsGridView: UIStackView {
         _cachedHighlightableViews.removeAll()
         
         // inform subviews
-        NotificationCenter.default.post(name: SharedConstants.orientationChangeNotificationName, object: self, userInfo: [SharedConstants.newOrientationUserInfoKey: newOrientation])
+        NotificationCenter.default.post(name: SharedConstants.orientationChangedNotification, object: self, userInfo: [SharedConstants.newOrientationUserInfoKey: newOrientation])
     }
     
     private func setupSubviews() {
@@ -137,7 +137,7 @@ class ButtonsGridView: UIStackView {
         }
         
         // don't set constraints on the double width button (and it will get resized appropriately)
-        if button.buttonConfiguration.id == .zero { return }
+        if button.buttonConfiguration.id == .number(0) { return }
         
         let widthConstraint = button.widthAnchor.constraint(equalTo: firstStandardButton.widthAnchor)
         let heightConstraint = button.heightAnchor.constraint(equalTo: firstStandardButton.heightAnchor)

@@ -9,6 +9,7 @@ import UIKit
 
 class ButtonView: HighlightableBackgroundView {
     var buttonConfiguration: ButtonConfiguration
+    var id: ButtonID
     
     var showsAlternateKey: Bool = false // default
     
@@ -19,7 +20,8 @@ class ButtonView: HighlightableBackgroundView {
     
     init(buttonConfiguration: ButtonConfiguration) {
         self.buttonConfiguration = buttonConfiguration
-
+        self.id = buttonConfiguration.id
+        
         // set the background for various states
         let backgroundColors = Self.getBackgroundColors(for: buttonConfiguration)
         super.init(normalBackgroundColor: backgroundColors.normal,
@@ -33,11 +35,11 @@ class ButtonView: HighlightableBackgroundView {
         case .image:
             self.initializeImage()
             // update image whenever an orientation change notification is posted
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updateImage(_:)), name: SharedConstants.orientationChangeNotificationName, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.updateImage(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
         case .label:
             self.initializeLabel()
             // update label whenever an orientation change notification is posted
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updateLabel(_:)), name: SharedConstants.orientationChangeNotificationName, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.updateLabel(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
         }
     }
     
@@ -49,7 +51,8 @@ class ButtonView: HighlightableBackgroundView {
     }
     
     func buttonTap() {
-//        print("tapped \(self.buttonConfiguration.text)")
+//        print("tapped \(self.buttonConfiguration.text)")        
+        NotificationCenter.default.post(name: SharedConstants.buttonWasPressed, object: self, userInfo: nil)
     }
     
     required init?(coder: NSCoder) {

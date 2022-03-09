@@ -49,8 +49,11 @@ enum ButtonColor {
     }
 }
 
-enum ButtonID {
+enum ButtonID: Equatable {
     // MARK: - Primary buttons (standard calculator)
+    case number(Int)
+    case decimalPoint
+    
     case clear
     case signChange
     case percentage
@@ -59,20 +62,7 @@ enum ButtonID {
     case subtraction
     case addition
     case equals
-    
-    case decimalPoint
-    
-    case zero
-    case one
-    case two
-    case three
-    case four
-    case five
-    case six
-    case seven
-    case eight
-    case nine
-    
+        
     // MARK: - Secondary buttons (scientific calculator)
     case leftParanthesis
     case rightParanthesis

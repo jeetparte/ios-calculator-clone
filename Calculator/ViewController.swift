@@ -20,6 +20,10 @@ class ViewController: UIViewController {
     // MARK: - View events
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // listen for button tap notifications
+        NotificationCenter.default
+            .addObserver(self, selector: #selector(self.handleButtonTap(_:)), name: SharedConstants.buttonWasPressed, object: nil)
 
         // this app remains in dark mode
         self.view.backgroundColor = .systemBackground
@@ -53,6 +57,71 @@ class ViewController: UIViewController {
             if let orientation = self.view.window?.windowScene?.interfaceOrientation.simpleOrientation {
                 self.activateConstraints(for: orientation)
             }
+        }
+    }
+    
+    // MARK: - Handle button taps
+    var displayNumber: Double = 0 {
+        didSet {
+            displayLabel.text =
+            NumberFormatter.localizedString(from: NSNumber(value: self.displayNumber), number: .decimal)
+        }
+    }
+    
+    var firstOperand: Double = 0 {
+        didSet {
+            displayNumber = firstOperand
+        }
+    }
+    var secondOperand: Double? {
+        didSet {
+            if secondOperand != nil {
+                displayNumber = secondOperand!
+            }
+        }
+    }
+    var currentOperation: ButtonID?
+    
+    @objc func handleButtonTap(_ notification: Notification) {
+        guard let buttonView = notification.object as? ButtonView else { return }
+        print("handling tap for button \(buttonView.id)")
+        
+        switch buttonView.id {
+        case .number(let n):
+            if currentOperation == nil {
+                firstOperand = firstOperand * 10 + Double(n)
+            } else {
+                secondOperand = (secondOperand ?? 0) * 10 + Double(n)
+            }
+        case .decimalPoint:
+            break
+        case .clear:
+            secondOperand = nil
+            firstOperand = 0
+            currentOperation = nil
+        case .signChange: break
+        case .percentage: break
+        case .division:
+            currentOperation = .division
+        case .multiplication:
+            currentOperation = .multiplication
+        case .subtraction:
+            currentOperation = .subtraction
+        case .addition:
+            currentOperation = .addition
+        case .equals:
+            switch currentOperation {
+            case nil:
+                break
+            case .multiplication:
+                firstOperand = firstOperand * (secondOperand ?? 1.0)
+                currentOperation = nil
+                secondOperand = nil
+            default:
+                break
+            }
+        default:
+            break
         }
     }
     
@@ -126,8 +195,7 @@ class ViewController: UIViewController {
         displayLabel.adjustsFontSizeToFitWidth = true
         displayLabel.minimumScaleFactor = 0.5 // tweak later
                 
-        let number = 123_456_125
-        displayLabel.text = NumberFormatter.localizedString(from: NSNumber(value: number), number: .decimal)
+        displayLabel.text = NumberFormatter.localizedString(from: NSNumber(value: self.displayNumber), number: .decimal)
         displayLabel.textColor = .white
         displayLabel.font = UIFont.systemFont(ofSize: 86, weight: .light)
         

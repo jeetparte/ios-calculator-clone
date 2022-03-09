@@ -8,6 +8,9 @@
 import Foundation
 
 struct SharedConstants {
-    static let orientationChangeNotificationName = Notification.Name("orientationChange")
+    static let orientationChangedNotification = Notification.Name("orientationChanged")
     static let newOrientationUserInfoKey = "newOrientation"
+    
+    static let buttonWasPressed = Notification.Name("buttonWasPressed")
+    static let buttonIdUserInfoKey = "buttonId"
 }
