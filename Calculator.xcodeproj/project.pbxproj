@@ -39,6 +39,7 @@
 		CE6DB67A27D5F67F00AD1667 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		CE6DB67D27D5F76600AD1667 /* InterfaceOrientation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceOrientation.swift; sourceTree = "<group>"; };
 		CE6DB67F27D5F78800AD1667 /* CalculationMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationMode.swift; sourceTree = "<group>"; };
+		CEE8D0B927D905710001B64E /* CalculatorCore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = CalculatorCore; sourceTree = "<group>"; };
 		CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightableBackgroundView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -56,6 +57,7 @@
 		CE24266127B1522C00503A96 = {
 			isa = PBXGroup;
 			children = (
+				CEE8D0B927D905710001B64E /* CalculatorCore */,
 				CE24266C27B1522C00503A96 /* Calculator */,
 				CE24266B27B1522C00503A96 /* Products */,
 			);
