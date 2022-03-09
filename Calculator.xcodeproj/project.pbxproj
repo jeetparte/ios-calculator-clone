@@ -20,6 +20,7 @@
 		CE6DB67B27D5F67F00AD1667 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6DB67A27D5F67F00AD1667 /* Constants.swift */; };
 		CE6DB67E27D5F76600AD1667 /* InterfaceOrientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6DB67D27D5F76600AD1667 /* InterfaceOrientation.swift */; };
 		CE6DB68027D5F78800AD1667 /* CalculationMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6DB67F27D5F78800AD1667 /* CalculationMode.swift */; };
+		CEDD2B7127D9076F00B9772A /* CalculatorCore in Frameworks */ = {isa = PBXBuildFile; productRef = CEDD2B7027D9076F00B9772A /* CalculatorCore */; };
 		CEEC737127C9286C00CEE635 /* HighlightableBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */; };
 /* End PBXBuildFile section */
 
@@ -48,6 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEDD2B7127D9076F00B9772A /* CalculatorCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,6 +62,7 @@
 				CEE8D0B927D905710001B64E /* CalculatorCore */,
 				CE24266C27B1522C00503A96 /* Calculator */,
 				CE24266B27B1522C00503A96 /* Products */,
+				CEDD2B6D27D9073A00B9772A /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -109,6 +112,13 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		CEDD2B6D27D9073A00B9772A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -125,6 +135,9 @@
 			dependencies = (
 			);
 			name = Calculator;
+			packageProductDependencies = (
+				CEDD2B7027D9076F00B9772A /* CalculatorCore */,
+			);
 			productName = Calculator;
 			productReference = CE24266A27B1522C00503A96 /* Calculator.app */;
 			productType = "com.apple.product-type.application";
@@ -410,6 +423,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CEDD2B7027D9076F00B9772A /* CalculatorCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CalculatorCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CE24266227B1522C00503A96 /* Project object */;
 }
