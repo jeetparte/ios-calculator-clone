@@ -6,26 +6,32 @@
  See https://en.wikipedia.org/wiki/Calculator_input_methods#Immediate_execution for details.
  */
 
-public enum CalculatorError: Error {
-    case invalidInput
-}
-
 public class SingleStepCalculator {
-    public var firstOperand: Double! = 0.0 {
+    /// - Note: This property should never be `nil`. It is an optional only so that it can be accessed together with
+    /// the optional secondOperand property using a common KeyPath.
+    private var firstOperand: Double! = 0.0 {
         didSet {
             precondition(firstOperand != nil, "Error: This property must not be set to nil.")
             self.currentOperand = \.firstOperand
+            
+            self.noActionsSinceLastEvaluation = false
         }
     }
     
-    public var secondOperand: Double? {
+    private var secondOperand: Double? {
         didSet {
             if secondOperand != nil {
                 self.currentOperand = \.secondOperand
             }
+            self.noActionsSinceLastEvaluation = false
         }
     }
-    public var operation: Operation?
+    
+    public var operation: BinaryOperation? {
+        didSet {
+            self.noActionsSinceLastEvaluation = false
+        }
+    }
     
     private var currentOperand = \SingleStepCalculator.firstOperand
     
@@ -49,11 +55,22 @@ public class SingleStepCalculator {
             throw CalculatorError.invalidInput
         }
         
+        // Any input after evaluation should be considered fresh input
+        // and should override the result of the evaluation
+        if noActionsSinceLastEvaluation {
+            assert(self.currentOperand == \.firstOperand)
+            // clear the previous result
+            firstOperand = 0.0
+        }
+        
+        // when there's a queued operation, we redirect input to second operand
         if operation != nil && secondOperand == nil {
             secondOperand = 0.0 // this sets it as the current operand as well
         }
         
-        self[keyPath: currentOperand] = (self[keyPath: currentOperand] ?? 0) * 10 + Double(d)
+        let currentValue = self[keyPath: currentOperand]!
+        let d = Double(d)
+        self[keyPath: currentOperand] = currentValue * 10 + Double(signOf: currentValue, magnitudeOf: d)
     }
     
     public func inputDigits(_ digits: Int ...) throws {
@@ -63,10 +80,11 @@ public class SingleStepCalculator {
     }
     
     public func inputNumber(_ n: Int) {
+        currentOperand = operation != nil ? \.secondOperand : \.firstOperand
         self[keyPath: currentOperand] = Double(n)
     }
     
-    public func inputOperation(_ op: Operation) {
+    public func inputOperation(_ op: BinaryOperation) {
         if self.operation == nil {
             self.operation = op
         } else {
@@ -85,9 +103,23 @@ public class SingleStepCalculator {
         }
     }
     
-    public func evaluate() {
+    public func inputOperation(_ op: UnaryOperation) {
+        if op == .signChange {
+            self[keyPath: currentOperand]?.negate()
+        }
+    }
+    
+    /// `true` if the last interaction with the calculator was an evaluation (`=`) operation and no actions have been performed since.
+    private var noActionsSinceLastEvaluation = false
+    @discardableResult public func evaluate() -> Double {
+        defer {
+            // IMPORTANT: re-evaluate defer statement usage if we do error handling
+            noActionsSinceLastEvaluation = true
+        }
+        // if the operator or 2nd operand are not specified,
+        // simply return the 1st operand as result
         guard let operation = self.operation, let secondOperand = self.secondOperand  else {
-            return
+            return self.firstOperand!
         }
         
         switch operation {
@@ -103,21 +135,27 @@ public class SingleStepCalculator {
         
         self.secondOperand = nil
         self.operation = nil
+        
+        return self.firstOperand!
     }
     
     public func allClear() {
         firstOperand = 0.0
         secondOperand = nil
         operation = nil
-        
+                
         self.currentOperand = \.firstOperand
     }
     
-    public enum Operation {
+    public enum BinaryOperation {
         case multiply
         case divide
         case add
         case subtract
+    }
+    
+    public enum UnaryOperation {
+        case signChange
     }
 }
 
