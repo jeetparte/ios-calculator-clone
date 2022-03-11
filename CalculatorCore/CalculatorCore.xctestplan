@@ -1,0 +1,39 @@
+{
+  "configurations" : [
+    {
+      "id" : "7A989D91-8340-4016-9B6F-EE7869BEE29E",
+      "name" : "Config 1",
+      "options" : {
+        "commandLineArgumentEntries" : [
+          {
+            "argument" : "-which 1"
+          }
+        ]
+      }
+    },
+    {
+      "id" : "47ECFF94-85B4-4A7E-8604-D9817FC776C0",
+      "name" : "Config 2",
+      "options" : {
+        "commandLineArgumentEntries" : [
+          {
+            "argument" : "-which 2"
+          }
+        ]
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "CalculatorCoreTests",
+        "name" : "CalculatorCoreTests"
+      }
+    }
+  ],
+  "version" : 1
+}

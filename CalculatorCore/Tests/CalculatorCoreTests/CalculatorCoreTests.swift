@@ -8,11 +8,10 @@ final class CalculatorCoreTests: XCTestCase {
     static var which: Int = 0
     
     override class func setUp() {
-        let options = [1,2]
-        // roll a dice!
-//        which = options.randomElement()!
-        
-        which = 1
+        // retrieve arguments passed at launch
+        let arg = UserDefaults.standard.integer(forKey: "which")
+        assert(arg != 0)
+        which = arg
         print("Setup test-case for choice = ", which)
     }
     
