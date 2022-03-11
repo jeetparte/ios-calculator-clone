@@ -187,7 +187,7 @@ class ViewController: UIViewController {
     
     private func activateConstraints(for orientation: InterfaceOrientation) {
 //         FIXME: - Maybe ripping out the stack view temporarily can help get rid of the auto-layout warning?
-        // Yes it works, but it creates other problems - some constraints are lost.
+        // Yes it works, but it creates other problems - some constraints are lost TODO: confirm this
         
         switch orientation {
         case .portrait:
