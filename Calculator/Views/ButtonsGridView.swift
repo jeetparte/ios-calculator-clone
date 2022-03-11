@@ -137,7 +137,7 @@ class ButtonsGridView: UIStackView {
         }
         
         // don't set constraints on the double width button (and it will get resized appropriately)
-        if button.buttonConfiguration.id == .number(0) { return }
+        if button.buttonConfiguration.id == .digit(0) { return }
         
         let widthConstraint = button.widthAnchor.constraint(equalTo: firstStandardButton.widthAnchor)
         let heightConstraint = button.heightAnchor.constraint(equalTo: firstStandardButton.heightAnchor)

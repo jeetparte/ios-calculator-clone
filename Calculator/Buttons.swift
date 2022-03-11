@@ -17,28 +17,28 @@ let standardButtonConfigurations: [[ButtonConfiguration]] = [
     ],
     // Row 2
     [
-        ButtonConfiguration(id: .number(7), text: "7", color: .standardButtonColor),
-        ButtonConfiguration(id: .number(8), text: "8", color: .standardButtonColor),
-        ButtonConfiguration(id: .number(9), text: "9", color: .standardButtonColor),
+        ButtonConfiguration(id: .digit(7), text: "7", color: .standardButtonColor),
+        ButtonConfiguration(id: .digit(8), text: "8", color: .standardButtonColor),
+        ButtonConfiguration(id: .digit(9), text: "9", color: .standardButtonColor),
         ButtonConfiguration(id: .multiplication, text: "multiply", color: .accentColor, textType: .image),
     ],
     // Row 3
     [
-        ButtonConfiguration(id: .number(4), text: "4", color: .standardButtonColor),
-        ButtonConfiguration(id: .number(5), text: "5", color: .standardButtonColor),
-        ButtonConfiguration(id: .number(6), text: "6", color: .standardButtonColor),
+        ButtonConfiguration(id: .digit(4), text: "4", color: .standardButtonColor),
+        ButtonConfiguration(id: .digit(5), text: "5", color: .standardButtonColor),
+        ButtonConfiguration(id: .digit(6), text: "6", color: .standardButtonColor),
         ButtonConfiguration(id: .subtraction, text: "minus", color: .accentColor, textType: .image),
     ],
     // Row 4
     [
-        ButtonConfiguration(id: .number(1), text: "1", color: .standardButtonColor),
-        ButtonConfiguration(id: .number(2), text: "2", color: .standardButtonColor),
-        ButtonConfiguration(id: .number(3), text: "3", color: .standardButtonColor),
+        ButtonConfiguration(id: .digit(1), text: "1", color: .standardButtonColor),
+        ButtonConfiguration(id: .digit(2), text: "2", color: .standardButtonColor),
+        ButtonConfiguration(id: .digit(3), text: "3", color: .standardButtonColor),
         ButtonConfiguration(id: .addition, text: "plus", color: .accentColor, textType: .image),
     ],
     // Row 5
     [
-        ButtonConfiguration(id: .number(0), text: "0", color: .standardButtonColor),
+        ButtonConfiguration(id: .digit(0), text: "0", color: .standardButtonColor),
         ButtonConfiguration(id: .decimalPoint, text: ".", color: .standardButtonColor),
         ButtonConfiguration(id: .equals, text: "equal", color: .accentColor, textType: .image),
     ],

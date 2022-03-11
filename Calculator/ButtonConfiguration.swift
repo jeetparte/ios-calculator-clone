@@ -51,7 +51,7 @@ enum ButtonColor {
 
 enum ButtonID: Equatable {
     // MARK: - Primary buttons (standard calculator)
-    case number(Int)
+    case digit(Int)
     case decimalPoint
     
     case clear

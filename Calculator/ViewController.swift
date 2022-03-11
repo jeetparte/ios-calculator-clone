@@ -6,8 +6,11 @@
 //
 
 import UIKit
+import CalculatorCore
 
 class ViewController: UIViewController {
+    let calculator = SingleStepCalculator()
+    
     var displayLabel: UILabel!
     var resultsView: UIView!
     var buttonsGridView: ButtonsGridView!
@@ -64,65 +67,38 @@ class ViewController: UIViewController {
     var displayNumber: Double = 0 {
         didSet {
             displayLabel.text =
+            // TODO: - avoid creating a new formatter instance every time.
             NumberFormatter.localizedString(from: NSNumber(value: self.displayNumber), number: .decimal)
         }
     }
-    
-    var firstOperand: Double = 0 {
-        didSet {
-            displayNumber = firstOperand
-        }
-    }
-    var secondOperand: Double? {
-        didSet {
-            if secondOperand != nil {
-                displayNumber = secondOperand!
-            }
-        }
-    }
-    var currentOperation: ButtonID?
-    
+        
     @objc func handleButtonTap(_ notification: Notification) {
         guard let buttonView = notification.object as? ButtonView else { return }
         print("handling tap for button \(buttonView.id)")
         
         switch buttonView.id {
-        case .number(let n):
-            if currentOperation == nil {
-                firstOperand = firstOperand * 10 + Double(n)
-            } else {
-                secondOperand = (secondOperand ?? 0) * 10 + Double(n)
-            }
+        case .digit(let n):
+            try! calculator.inputDigit(n)
         case .decimalPoint:
             break
         case .clear:
-            secondOperand = nil
-            firstOperand = 0
-            currentOperation = nil
+            calculator.allClear()
         case .signChange: break
         case .percentage: break
         case .division:
-            currentOperation = .division
+            calculator.inputOperation(.divide)
         case .multiplication:
-            currentOperation = .multiplication
+            calculator.inputOperation(.multiply)
         case .subtraction:
-            currentOperation = .subtraction
+            calculator.inputOperation(.subtract)
         case .addition:
-            currentOperation = .addition
+            calculator.inputOperation(.add)
         case .equals:
-            switch currentOperation {
-            case nil:
-                break
-            case .multiplication:
-                firstOperand = firstOperand * (secondOperand ?? 1.0)
-                currentOperation = nil
-                secondOperand = nil
-            default:
-                break
-            }
+            calculator.evaluate()
         default:
             break
         }
+        displayNumber = calculator.displayValue ?? -1.0
     }
     
     // MARK: - Private methods
@@ -210,6 +186,9 @@ class ViewController: UIViewController {
     }
     
     private func activateConstraints(for orientation: InterfaceOrientation) {
+//         FIXME: - Maybe ripping out the stack view temporarily can help get rid of the auto-layout warning?
+        // Yes it works, but it creates other problems - some constraints are lost.
+        
         switch orientation {
         case .portrait:
             NSLayoutConstraint.deactivate(landscapeConstraints)
@@ -217,8 +196,11 @@ class ViewController: UIViewController {
             NSLayoutConstraint.activate(portraitConstraints)
         case .landscape:
             NSLayoutConstraint.deactivate(portraitConstraints)
+//            self.buttonsGridView.removeFromSuperview()
             self.buttonsGridView.handleOrientationChange(newOrientation: orientation)
+//            self.view.addSubview(self.buttonsGridView)
             NSLayoutConstraint.activate(landscapeConstraints)
+            self.view.layoutIfNeeded()
         default:
             break
         }

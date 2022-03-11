@@ -10,19 +10,47 @@ public enum CalculatorError: Error {
     case invalidInput
 }
 
-public class Calculator {
-    public var firstOperand: Double! = 0.0
-    public var secondOperand: Double?
+public class SingleStepCalculator {
+    public var firstOperand: Double! = 0.0 {
+        didSet {
+            precondition(firstOperand != nil, "Error: This property must not be set to nil.")
+            self.currentOperand = \.firstOperand
+        }
+    }
+    
+    public var secondOperand: Double? {
+        didSet {
+            if secondOperand != nil {
+                self.currentOperand = \.secondOperand
+            }
+        }
+    }
     public var operation: Operation?
     
-    private var currentOperand = \Calculator.firstOperand
+    private var currentOperand = \SingleStepCalculator.firstOperand
+    
+    /** The value of the operand which is currently most suitable for display.
+        - Note: A return value of `nil` signifies ...
+    */
+    public var displayValue: Double? {
+        return self[keyPath: currentOperand]
+    }
     
     public init() {
     }
     
+    /**
+            - Precondition: *d* must one of the digits between 0 and 9.
+     
+            - Throws: `CalculatorError.invalidInput` if *d* is not a single-digit number between 0 and 9.
+     */
     public func inputDigit(_ d: Int) throws {
-        guard d < 10 else {
+        guard (0...9) ~= d else {
             throw CalculatorError.invalidInput
+        }
+        
+        if operation != nil && secondOperand == nil {
+            secondOperand = 0.0 // this sets it as the current operand as well
         }
         
         self[keyPath: currentOperand] = (self[keyPath: currentOperand] ?? 0) * 10 + Double(d)
@@ -41,7 +69,6 @@ public class Calculator {
     public func inputOperation(_ op: Operation) {
         if self.operation == nil {
             self.operation = op
-            self.currentOperand = \.secondOperand
         } else {
             // there's a previous operation
             
@@ -53,7 +80,6 @@ public class Calculator {
             // then queue this operation
             else {
                 self.evaluate()
-                self.secondOperand = nil
                 self.operation = op
             }
         }
@@ -83,6 +109,8 @@ public class Calculator {
         firstOperand = 0.0
         secondOperand = nil
         operation = nil
+        
+        self.currentOperand = \.firstOperand
     }
     
     public enum Operation {
@@ -93,7 +121,7 @@ public class Calculator {
     }
 }
 
-extension Calculator: CustomStringConvertible {
+extension SingleStepCalculator: CustomStringConvertible {
     public var description: String {
         return "a: \(String(describing: firstOperand)) , b: \(String(describing: secondOperand)), operation: \(String(describing: operation))"
     }
