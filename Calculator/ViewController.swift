@@ -83,7 +83,8 @@ class ViewController: UIViewController {
             break
         case .clear:
             calculator.allClear()
-        case .signChange: break
+        case .signChange:
+            calculator.inputOperation(.signChange)
         case .percentage: break
         case .division:
             calculator.inputOperation(.divide)
