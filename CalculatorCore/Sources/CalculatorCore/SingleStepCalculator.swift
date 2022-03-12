@@ -105,6 +105,12 @@ public class SingleStepCalculator {
     
     public func inputOperation(_ op: UnaryOperation) {
         if op == .signChange {
+            // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
+            // the sign change should apply on the second operand, not the first.
+            if operation != nil {
+                secondOperand = 0.0 // this sets it as the current operand as well
+            }
+            
             self[keyPath: currentOperand]?.negate()
         }
     }

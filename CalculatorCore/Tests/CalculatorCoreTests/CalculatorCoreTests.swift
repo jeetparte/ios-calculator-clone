@@ -82,7 +82,24 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
-    func testFreshInputAfterEvaluation() throws {
+    func testSignChangeAfterBinaryOperationDigits() throws {
+        // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
+        // the sign change should apply on the second operand, not the first.
+        //
+        // a, op, signChange, b = a op signChange(b) ≠ signChange(a) op b
+        
+        // 1 + signChange(3) = -2 ≠ 2
+        try calculator.inputDigit(1)
+        calculator.inputOperation(.add)
+        calculator.inputOperation(.signChange)
+        try calculator.inputDigit(3)
+        // 2nd operand should now display as -3
+        XCTAssertEqual(calculator.displayValue!, -3.0)
+        let result = calculator.evaluate()
+        XCTAssertEqual(result, -2.0)
+    }
+    
+    func testInputAfterEvaluationDigits() throws {
         // Any input after evaluation should be considered fresh input
         // and should override the result of the evaluation
                 
@@ -121,6 +138,8 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     func testAdditionDigits() throws {
+        // TODO: - test negative operands
+        
         // 1 + 5 = 6
         let expectedResult = Double(6)
         
@@ -174,6 +193,8 @@ final class CalculatorCoreTests: XCTestCase {
     
     // TODO: add two pairs of methods for every test - 1. digit input 2. number input
     func testSubtractionDigits() throws {
+        // TODO: - test negative operands
+        
         // 1 - 3 = -2
         // 3 - 1 = 2
         // 1 - 1 = 0
