@@ -60,6 +60,21 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
+    func testEvaluateIdentity() {
+        // If we evaluate (hit '=') when no binary operation has been specified,
+        // it should just return the first operand
+        let testNumbers = [1, -2]
+        
+        for testNumber in testNumbers {
+            calculator.inputNumber(testNumber)
+            XCTAssertEqual(Double(testNumber), calculator.evaluate())
+        }
+    }
+    
+    func testDisplayValue() {
+        // TODO: -
+    }
+    
     func testSignChange() {
         // signChange(a) -> -a
         // signChange(-a) -> a
