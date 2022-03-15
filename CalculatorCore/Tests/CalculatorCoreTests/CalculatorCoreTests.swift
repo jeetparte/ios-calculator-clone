@@ -56,7 +56,6 @@ final class CalculatorCoreTests: XCTestCase {
             let negativeResult = calculator.displayValue!
             
             XCTAssertEqual(-positiveResult, negativeResult)
-            
         }
     }
     
@@ -68,6 +67,54 @@ final class CalculatorCoreTests: XCTestCase {
         for testNumber in testNumbers {
             calculator.inputNumber(testNumber)
             XCTAssertEqual(Double(testNumber), calculator.evaluate())
+        }
+    }
+    
+    func testEvaluateSequenceDigits() throws {
+        // The sequence of operations
+        // a, op, =, b, =
+        // should evaluate to b.
+        
+        let tests: [(a: Int, op: SingleStepCalculator.BinaryOperation, b: Int)] = [
+            (4, .multiply, 2),
+            (3, .subtract, 1),
+            (9, .divide, 5),
+            (7, .add, 3),
+        ]
+        
+        for test in tests {
+            try calculator.inputDigit(test.a)
+            calculator.inputOperation(test.op)
+            calculator.evaluate()
+            try calculator.inputDigit(test.b)
+            let result = calculator.evaluate()
+            XCTAssertEqual(result, Double(test.b))
+            
+            self.newCalculator()
+        }
+    }
+    
+    func testEvaluateSequenceNumbers() {
+        // The sequence of operations
+        // a, op, =, b, =
+        // should evaluate to b.
+        
+        let tests: [(a: Int, op: SingleStepCalculator.BinaryOperation, b: Int)] = [
+            (40, .multiply, 20),
+            (30, .subtract, 10),
+            (10, .divide, 7),
+            (19, .add, 13),
+        ]
+        
+        for test in tests {
+            calculator.inputNumber(test.a)
+            calculator.inputOperation(test.op)
+            calculator.evaluate()
+            calculator.inputNumber(test.b)
+            let result = calculator.evaluate()
+            XCTAssertEqual(result, Double(test.b))
+            
+            self.newCalculator()
         }
     }
     
