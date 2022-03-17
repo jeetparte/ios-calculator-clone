@@ -51,14 +51,13 @@ enum ButtonColor {
 
 enum ButtonID: Equatable {
 
+    static let binaryOperators: [Self] = [
+        .division, .multiplication, .subtraction, .addition,
+        .power, .powerReverseOperands,
+        .logToTheBase
+    ]
     var isBinaryOperator: Bool {
-        let binaryOperators: [Self] = [
-            .division, .multiplication, .subtraction, .addition,
-            .power, .powerReverseOperands,
-            .logToTheBase
-        ]
-        
-        return binaryOperators.contains(self)
+        return Self.binaryOperators.contains(self)
     }
     
     // MARK: - Primary buttons (standard calculator)
