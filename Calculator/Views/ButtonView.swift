@@ -18,6 +18,32 @@ class ButtonView: HighlightableBackgroundView {
     
     private var previousFontSize: CGFloat?
     
+    private var normalForegroundColor: UIColor? {
+        return self.buttonConfiguration.color == .standardButtonProminent ? .black : .white
+    }
+    
+    override var highlightState: HighlightableBackgroundView.HighlightState {
+        didSet {
+            guard highlightState != oldValue else { return }
+            
+            // change foreground color when selected or unselected
+            switch (oldValue, highlightState) {
+            case (_, .selected):
+                // Change foreground color to normal variant of background color
+                if let selectedTextColor = self.stateBackgroundColorMap[.normal], selectedTextColor != nil {
+                    label?.textColor = selectedTextColor!
+                    imageView?.tintColor = selectedTextColor!
+                }
+            case (_, .normal):
+                // Revert foreground color to previous state
+                label?.textColor = normalForegroundColor
+                imageView?.tintColor = normalForegroundColor
+            default:
+                break
+            }
+        }
+    }
+    
     init(buttonConfiguration: ButtonConfiguration) {
         self.buttonConfiguration = buttonConfiguration
         self.id = buttonConfiguration.id
@@ -40,6 +66,10 @@ class ButtonView: HighlightableBackgroundView {
             self.initializeLabel()
             // update label whenever an orientation change notification is posted
             NotificationCenter.default.addObserver(self, selector: #selector(self.updateLabel(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
+        }
+        
+        if self.id.isBinaryOperator {
+            NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeBinaryOperation(_:)), name: SharedConstants.binaryOperationChanged, object: nil)
         }
     }
     
@@ -69,7 +99,7 @@ class ButtonView: HighlightableBackgroundView {
         label.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
         
         label.text = self.showsAlternateKey ? self.buttonConfiguration.alternateText :  self.buttonConfiguration.text
-        label.textColor = self.buttonConfiguration.color == .standardButtonProminent ? .black : .white
+        label.textColor = self.normalForegroundColor
     }
     
     @objc func updateLabel(_ orientationChangeNotification: Notification) {
@@ -113,7 +143,7 @@ class ButtonView: HighlightableBackgroundView {
         imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
                 
         imageView.image = UIImage(systemName: buttonConfiguration.text)
-        imageView.tintColor  = self.buttonConfiguration.color == .standardButtonProminent ? .black : .white
+        imageView.tintColor  = self.normalForegroundColor
     }
     
     @objc func updateImage(_ orientationChangeNotification: Notification) {
@@ -144,6 +174,22 @@ class ButtonView: HighlightableBackgroundView {
             self.imageView.preferredSymbolConfiguration = self.imageView.preferredSymbolConfiguration?.applying(newConfiguration)
         }
         self.previousFontSize = fontSize
+    }
+    
+    // MARK: - Binary operators
+    @objc func didChangeBinaryOperation(_ binaryOperationChangedNotification: Notification) {
+        guard let userInfo = binaryOperationChangedNotification.userInfo,
+              let infoUnderKey = userInfo[SharedConstants.binaryOperationUserInfoKey],
+              let newOperation =  infoUnderKey as? ButtonID? else {
+            assertionFailure("Could not obtain necessary information from notification")
+            return
+        }
+        
+        if self.id == newOperation {
+            self.highlightState = .selected
+        } else {
+            self.highlightState = .normal
+        }
     }
     
     // MARK: -

@@ -50,6 +50,17 @@ enum ButtonColor {
 }
 
 enum ButtonID: Equatable {
+
+    var isBinaryOperator: Bool {
+        let binaryOperators: [Self] = [
+            .division, .multiplication, .subtraction, .addition,
+            .power, .powerReverseOperands,
+            .logToTheBase
+        ]
+        
+        return binaryOperators.contains(self)
+    }
+    
     // MARK: - Primary buttons (standard calculator)
     case digit(Int)
     case decimalPoint

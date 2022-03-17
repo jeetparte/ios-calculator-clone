@@ -27,6 +27,7 @@ public class SingleStepCalculator {
         }
     }
     
+    // TODO: - rename to binaryOperation?
     public var operation: BinaryOperation? {
         didSet {
             self.noActionsSinceLastEvaluation = false
@@ -137,6 +138,8 @@ public class SingleStepCalculator {
             firstOperand += secondOperand
         case .subtract:
             firstOperand -= secondOperand
+        default:
+            break
         }
         
         self.secondOperand = nil
@@ -158,6 +161,9 @@ public class SingleStepCalculator {
         case divide
         case add
         case subtract
+        case power
+        case powerReverseOperands // * should we implement this?
+        case logToTheBase
     }
     
     public enum UnaryOperation {

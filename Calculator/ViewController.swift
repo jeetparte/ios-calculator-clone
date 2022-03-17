@@ -71,10 +71,17 @@ class ViewController: UIViewController {
             NumberFormatter.localizedString(from: NSNumber(value: self.displayNumber), number: .decimal)
         }
     }
+    var currentOperation: ButtonID? {
+        didSet {
+            guard currentOperation != oldValue else { return }
+            
+            NotificationCenter.default.post(name: SharedConstants.binaryOperationChanged, object: self, userInfo: [SharedConstants.binaryOperationUserInfoKey: currentOperation as Any])
+        }
+    }
         
     @objc func handleButtonTap(_ notification: Notification) {
         guard let buttonView = notification.object as? ButtonView else { return }
-        print("handling tap for button \(buttonView.id)")
+//        print("handling tap for button \(buttonView.id)")
         
         switch buttonView.id {
         case .digit(let n):
@@ -94,12 +101,38 @@ class ViewController: UIViewController {
             calculator.inputOperation(.subtract)
         case .addition:
             calculator.inputOperation(.add)
+        case .power:
+            calculator.inputOperation(.power)
+        case .powerReverseOperands:
+            calculator.inputOperation(.powerReverseOperands)
+        case .logToTheBase:
+            calculator.inputOperation(.logToTheBase)
         case .equals:
             calculator.evaluate()
         default:
             break
         }
         displayNumber = calculator.displayValue ?? -1.0
+        self.currentOperation = {
+            guard let operation = calculator.operation else { return nil }
+
+            switch operation {
+            case .multiply:
+                return .multiplication
+            case .divide:
+                return .division
+            case .add:
+                return .addition
+            case .subtract:
+                return .subtraction
+            case .power:
+                return .power
+            case .powerReverseOperands:
+                return .powerReverseOperands
+            case .logToTheBase:
+                return .logToTheBase
+            }
+        }()
     }
     
     // MARK: - Private methods

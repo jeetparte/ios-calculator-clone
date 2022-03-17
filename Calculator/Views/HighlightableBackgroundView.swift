@@ -15,6 +15,7 @@ class HighlightableBackgroundView: UIView {
                 
         self.configureBackgroundColor(normalBackgroundColor, for: .normal)
         self.configureBackgroundColor(highlightedBackgroundColor, for: .active)
+        self.configureBackgroundColor(.white, for: .selected) // TODO: - different for scientific buttons
         
         // set the backgroundColor to normal state
         self.backgroundColor = stateBackgroundColorMap[.normal]!
@@ -41,11 +42,17 @@ class HighlightableBackgroundView: UIView {
                 if let colorForState = self.stateBackgroundColorMap[highlightState] {
                     self.backgroundColor = colorForState
                 }
+            case .selected:
+                if let colorForState = self.stateBackgroundColorMap[highlightState] {
+                    UIView.animate(withDuration: 0.2) {
+                        self.backgroundColor = colorForState
+                    }
+                }
             }
         }
     }
     
-    private var stateBackgroundColorMap: [HighlightState: UIColor?] = [:]
+    var stateBackgroundColorMap: [HighlightState: UIColor?] = [:]
     
     func configureBackgroundColor(_ color: UIColor?, for state: HighlightableBackgroundView.HighlightState) {
         self.stateBackgroundColorMap[state] = color
@@ -53,6 +60,7 @@ class HighlightableBackgroundView: UIView {
     
     enum HighlightState {
         case normal
-        case active
+        case active // TODO: - rename
+        case selected
     }
 }

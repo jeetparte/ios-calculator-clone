@@ -13,4 +13,7 @@ struct SharedConstants {
     
     static let buttonWasPressed = Notification.Name("buttonWasPressed")
     static let buttonIdUserInfoKey = "buttonId"
+    
+    static let binaryOperationChanged = Notification.Name("binaryOperationChanged")
+    static let binaryOperationUserInfoKey = "binaryOperation"
 }

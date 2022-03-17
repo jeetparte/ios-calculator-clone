@@ -263,13 +263,13 @@ class ButtonsGridView: UIStackView {
         case .ended:
             // touch up event -
             // for the button under this touch,
-            // fire its action handler and unhighlight it
+            // unhighlight it and fire its action handler
             if let button = self.currentlyHighlightedView {
-                assert(!button.isHidden, "Tried to activate hidden button.")
-                (button as? ButtonView)?.buttonTap()
-                
                 button.highlightState = .normal
                 self.currentlyHighlightedView = nil
+                
+                assert(!button.isHidden, "Tried to activate hidden button.")
+                (button as? ButtonView)?.buttonTap()
             }
         case .cancelled, .failed:
             // this happens for example, in landscape, when a drag on buttons at
