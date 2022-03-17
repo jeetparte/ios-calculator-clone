@@ -185,6 +185,7 @@ class ButtonView: HighlightableBackgroundView {
             return
         }
         
+        // Highlight the operation button (e.g. +, -, *, / etc.) that is currently selected
         if self.id == newOperation {
             self.visualState = .selected
         } else {
