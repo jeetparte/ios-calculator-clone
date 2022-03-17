@@ -63,7 +63,7 @@ class ButtonsGridView: UIStackView {
         }
 
         // clear selection from previous orientation
-        if self.currentlyHighlightedView?.highlightState == .active {
+        if self.currentlyHighlightedView?.visualState == .highlighted {
             self.currentlyHighlightedView!.removeHighlight()
             self.currentlyHighlightedView = nil
         }
@@ -217,9 +217,9 @@ class ButtonsGridView: UIStackView {
         willSet {
             if newValue == nil {
                 // make sure the view has been unhighlighted
-                if self.currentlyHighlightedView?.highlightState == .active {
+                if self.currentlyHighlightedView?.visualState == .highlighted {
                     self.currentlyHighlightedView!.removeHighlight()
-                    assert(self.currentlyHighlightedView!.highlightState != .active)
+                    assert(self.currentlyHighlightedView!.visualState != .highlighted)
                 }
             }
         }
@@ -255,9 +255,9 @@ class ButtonsGridView: UIStackView {
                 // if it is, do nothing
                 if isStillOnCurrentButton { return }
                 // if it isn't, unhighlight the button
-                assert(currentButton.highlightState == .active)
+                assert(currentButton.visualState == .highlighted)
                 currentButton.removeHighlight()
-                assert(currentButton.highlightState != .active)
+                assert(currentButton.visualState != .highlighted)
                 self.currentlyHighlightedView = nil
                 // and check if the touch is on another button (below)
             }
@@ -270,9 +270,9 @@ class ButtonsGridView: UIStackView {
             // for the button under this touch,
             // unhighlight it and fire its action handler
             if let button = self.currentlyHighlightedView {
-                assert(button.highlightState == .active)
+                assert(button.visualState == .highlighted)
                 button.removeHighlight()
-                assert(button.highlightState != .active)
+                assert(button.visualState != .highlighted)
                 self.currentlyHighlightedView = nil
                 
                 assert(!button.isHidden, "Tried to activate hidden button.")

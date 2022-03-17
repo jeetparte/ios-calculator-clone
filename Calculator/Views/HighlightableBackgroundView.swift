@@ -14,7 +14,7 @@ class HighlightableBackgroundView: UIView {
         super.init(frame: .zero)
                 
         self.configureBackgroundColor(normalBackgroundColor, for: .normal)
-        self.configureBackgroundColor(highlightedBackgroundColor, for: .active)
+        self.configureBackgroundColor(highlightedBackgroundColor, for: .highlighted)
         self.configureBackgroundColor(.white, for: .selected) // TODO: - different for scientific buttons
         
         // set the backgroundColor to normal state
@@ -25,63 +25,63 @@ class HighlightableBackgroundView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    var highlightState: HighlightState = .normal {
+    var visualState: VisualState = .normal {
         didSet {
-            if highlightState == oldValue { return }
+            if visualState == oldValue { return }
             
-            print(oldValue, " --> ", highlightState)
-            switch highlightState {
+//            print(oldValue, " --> ", visualState)
+            switch visualState {
                 // TODO: - we might want to consider the old state as well to determine the correct transition
             case .normal:
                 // remove highlight gradually
-                if let colorForState = self.stateBackgroundColorMap[highlightState] {
+                if let colorForState = self.stateBackgroundColorMap[visualState] {
                     UIView.animate(withDuration: 0.5, delay: 0, options: .allowUserInteraction) {
                         self.backgroundColor = colorForState
                     }
                 }
-            case .active:
+            case .highlighted:
                 // apply highlight immediately
-                if let colorForState = self.stateBackgroundColorMap[highlightState] {
+                if let colorForState = self.stateBackgroundColorMap[visualState] {
                     self.backgroundColor = colorForState
                 }
             case .selected:
-                if let colorForState = self.stateBackgroundColorMap[highlightState] {
+                if let colorForState = self.stateBackgroundColorMap[visualState] {
                     UIView.animate(withDuration: 0.2) {
                         self.backgroundColor = colorForState
                     }
                 }
             }
             
-            self.previousHighlightState = oldValue
+            self.previousVisualState = oldValue
         }
     }
     
-    var previousHighlightState: HighlightState?
+    var previousVisualState: VisualState?
     
-    var stateBackgroundColorMap: [HighlightState: UIColor?] = [:]
+    var stateBackgroundColorMap: [VisualState: UIColor?] = [:]
     
-    func configureBackgroundColor(_ color: UIColor?, for state: HighlightableBackgroundView.HighlightState) {
+    func configureBackgroundColor(_ color: UIColor?, for state: HighlightableBackgroundView.VisualState) {
         self.stateBackgroundColorMap[state] = color
     }
     
-    /// Prefer to use this over setting the *highlightState* property directly.
+    /// Prefer to use this over setting the *visualState* property directly.
     func activateHighlight() {
-        self.highlightState = .active
+        self.visualState = .highlighted
     }
     
     /// Reverts the view to the previous non-highlighted state.
     func removeHighlight() {
-        guard self.highlightState == .active else { return }
+        guard self.visualState == .highlighted else { return }
         
-        if let previous = self.previousHighlightState {
-            assert(previous != .active)
-            self.highlightState = previous
+        if let previous = self.previousVisualState {
+            assert(previous != .highlighted)
+            self.visualState = previous
         }
     }
     
-    enum HighlightState {
+    enum VisualState {
         case normal
-        case active // TODO: - rename
+        case highlighted // TODO: - rename
         case selected
     }
 }

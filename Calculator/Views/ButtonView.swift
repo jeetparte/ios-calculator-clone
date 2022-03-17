@@ -22,12 +22,12 @@ class ButtonView: HighlightableBackgroundView {
         return self.buttonConfiguration.color == .standardButtonProminent ? .black : .white
     }
     
-    override var highlightState: HighlightableBackgroundView.HighlightState {
+    override var visualState: HighlightableBackgroundView.VisualState {
         didSet {
-            guard highlightState != oldValue else { return }
+            guard visualState != oldValue else { return }
             
             // change foreground color when selected or unselected
-            switch (oldValue, highlightState) {
+            switch (oldValue, visualState) {
             case (_, .selected):
                 // Change foreground color to normal variant of background color
                 if let selectedTextColor = self.stateBackgroundColorMap[.normal], selectedTextColor != nil {
@@ -186,9 +186,9 @@ class ButtonView: HighlightableBackgroundView {
         }
         
         if self.id == newOperation {
-            self.highlightState = .selected
+            self.visualState = .selected
         } else {
-            self.highlightState = .normal
+            self.visualState = .normal
         }
     }
     
