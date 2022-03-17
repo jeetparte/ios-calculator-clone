@@ -29,7 +29,9 @@ class HighlightableBackgroundView: UIView {
         didSet {
             if highlightState == oldValue { return }
             
+            print(oldValue, " --> ", highlightState)
             switch highlightState {
+                // TODO: - we might want to consider the old state as well to determine the correct transition
             case .normal:
                 // remove highlight gradually
                 if let colorForState = self.stateBackgroundColorMap[highlightState] {
@@ -49,13 +51,32 @@ class HighlightableBackgroundView: UIView {
                     }
                 }
             }
+            
+            self.previousHighlightState = oldValue
         }
     }
+    
+    var previousHighlightState: HighlightState?
     
     var stateBackgroundColorMap: [HighlightState: UIColor?] = [:]
     
     func configureBackgroundColor(_ color: UIColor?, for state: HighlightableBackgroundView.HighlightState) {
         self.stateBackgroundColorMap[state] = color
+    }
+    
+    /// Prefer to use this over setting the *highlightState* property directly.
+    func activateHighlight() {
+        self.highlightState = .active
+    }
+    
+    /// Reverts the view to the previous non-highlighted state.
+    func removeHighlight() {
+        guard self.highlightState == .active else { return }
+        
+        if let previous = self.previousHighlightState {
+            assert(previous != .active)
+            self.highlightState = previous
+        }
     }
     
     enum HighlightState {

@@ -139,6 +139,7 @@ public class SingleStepCalculator {
         case .subtract:
             firstOperand -= secondOperand
         default:
+            // TODO: - handle other binary operations
             break
         }
         

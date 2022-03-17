@@ -63,8 +63,8 @@ class ButtonsGridView: UIStackView {
         }
 
         // clear selection from previous orientation
-        if self.currentlyHighlightedView != nil {
-            self.currentlyHighlightedView!.highlightState = .normal
+        if self.currentlyHighlightedView?.highlightState == .active {
+            self.currentlyHighlightedView!.removeHighlight()
             self.currentlyHighlightedView = nil
         }
         // clear cached views as onscreen views have changed
@@ -217,7 +217,10 @@ class ButtonsGridView: UIStackView {
         willSet {
             if newValue == nil {
                 // make sure the view has been unhighlighted
-                self.currentlyHighlightedView?.highlightState = .normal
+                if self.currentlyHighlightedView?.highlightState == .active {
+                    self.currentlyHighlightedView!.removeHighlight()
+                    assert(self.currentlyHighlightedView!.highlightState != .active)
+                }
             }
         }
     }
@@ -229,7 +232,7 @@ class ButtonsGridView: UIStackView {
                 let isTouchInside = candidate.point(inside: touchLocation, with: nil)
                 
                 if isTouchInside {
-                    candidate.highlightState = .active
+                    candidate.activateHighlight()
                     self.currentlyHighlightedView = candidate
                     break
                 }
@@ -252,7 +255,9 @@ class ButtonsGridView: UIStackView {
                 // if it is, do nothing
                 if isStillOnCurrentButton { return }
                 // if it isn't, unhighlight the button
-                currentButton.highlightState = .normal
+                assert(currentButton.highlightState == .active)
+                currentButton.removeHighlight()
+                assert(currentButton.highlightState != .active)
                 self.currentlyHighlightedView = nil
                 // and check if the touch is on another button (below)
             }
@@ -265,7 +270,9 @@ class ButtonsGridView: UIStackView {
             // for the button under this touch,
             // unhighlight it and fire its action handler
             if let button = self.currentlyHighlightedView {
-                button.highlightState = .normal
+                assert(button.highlightState == .active)
+                button.removeHighlight()
+                assert(button.highlightState != .active)
                 self.currentlyHighlightedView = nil
                 
                 assert(!button.isHidden, "Tried to activate hidden button.")
