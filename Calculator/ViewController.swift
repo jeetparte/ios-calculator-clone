@@ -93,9 +93,8 @@ class ViewController: UIViewController {
         case .signChange:
             calculator.inputOperation(.signChange)
         case .percentage: break
-        // Binary operations
-        case .division, .multiplication, .subtraction, .addition, .power, .powerReverseOperands, .logToTheBase:
-            let operation = binaryOperationsMap[buttonView.id]!
+        case let x where x.isBinaryOperator:
+            let operation = binaryOperationsMap[x]!
             calculator.inputOperation(operation)
         case .equals:
             calculator.evaluate()
