@@ -93,65 +93,56 @@ class ViewController: UIViewController {
         case .signChange:
             calculator.inputOperation(.signChange)
         case .percentage: break
-        case .division:
-            calculator.inputOperation(.divide)
-        case .multiplication:
-            calculator.inputOperation(.multiply)
-        case .subtraction:
-            calculator.inputOperation(.subtract)
-        case .addition:
-            calculator.inputOperation(.add)
-        case .power:
-            calculator.inputOperation(.power)
-        case .powerReverseOperands:
-            calculator.inputOperation(.powerReverseOperands)
-        case .logToTheBase:
-            calculator.inputOperation(.logToTheBase)
+        // Binary operations
+        case .division, .multiplication, .subtraction, .addition, .power, .powerReverseOperands, .logToTheBase:
+            let operation = binaryOperationsMap[buttonView.id]!
+            calculator.inputOperation(operation)
         case .equals:
             calculator.evaluate()
         default:
             break
         }
         displayNumber = calculator.displayValue ?? -1.0
-        
+        self.updateCurrentOperation(buttonView.id)
+    }
+    
+    private func updateCurrentOperation(_ id: ButtonID) {
         // if this was one of the binary operations,
         // show the corresponding button in 'selected' state
-        if buttonView.id.isBinaryOperator {
+        if id.isBinaryOperator {
             self.currentOperation = newOperation()
         } else if calculator.operation == nil {
             self.currentOperation = nil
         } else {
             // we unselect the previously selected operation button on
             // receiving certain inputs
-            if case .digit(_) = buttonView.id {
+            if case .digit(_) = id {
                 self.currentOperation = nil
             }
-            if buttonView.id == .decimalPoint {
+            if id == .decimalPoint {
                 self.currentOperation = nil
             }
         }
         
         func newOperation() -> ButtonID? {
             guard let operation = calculator.operation else { return nil }
-            
-            switch operation {
-            case .multiply:
-                return .multiplication
-            case .divide:
-                return .division
-            case .add:
-                return .addition
-            case .subtract:
-                return .subtraction
-            case .power:
-                return .power
-            case .powerReverseOperands:
-                return .powerReverseOperands
-            case .logToTheBase:
-                return .logToTheBase
-            }
+            // Ideally, we'd want a bi-directional map here.
+            // But this is ok for now.
+            return binaryOperationsMap
+                .first { $0.value == operation }!
+                .key
         }
     }
+    
+    private var binaryOperationsMap: [ButtonID: SingleStepCalculator.BinaryOperation] = [
+        .division: .divide,
+        .multiplication: .multiply,
+        .subtraction: .subtract,
+        .addition: .add,
+        .power: .power,
+        .powerReverseOperands: .powerReverseOperands,
+        .logToTheBase: .logToTheBase
+    ]
     
     // MARK: - Private methods
     private func setupConstraints(bezelDevice: Bool = false) {

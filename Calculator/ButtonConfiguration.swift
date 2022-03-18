@@ -49,7 +49,7 @@ enum ButtonColor {
     }
 }
 
-enum ButtonID: Equatable {
+enum ButtonID: Hashable {
 
     static let binaryOperators: [Self] = [
         .division, .multiplication, .subtraction, .addition,
