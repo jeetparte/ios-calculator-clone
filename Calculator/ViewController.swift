@@ -71,11 +71,10 @@ class ViewController: UIViewController {
             NumberFormatter.localizedString(from: NSNumber(value: self.displayNumber), number: .decimal)
         }
     }
-    var currentOperation: ButtonID? {
+    var operationToSelect: ButtonID? {
         didSet {
-            guard currentOperation != oldValue else { return }
-            
-            NotificationCenter.default.post(name: SharedConstants.binaryOperationChanged, object: self, userInfo: [SharedConstants.binaryOperationUserInfoKey: currentOperation as Any])
+            guard operationToSelect != oldValue else { return }
+            NotificationCenter.default.post(name: SharedConstants.selectedBinaryOperationChanged, object: self, userInfo: [SharedConstants.selectedBinaryOperationUserInfoKey: operationToSelect as Any])
         }
     }
         
@@ -109,17 +108,17 @@ class ViewController: UIViewController {
         // if this was one of the binary operations,
         // show the corresponding button in 'selected' state
         if id.isBinaryOperator {
-            self.currentOperation = newOperation()
+            self.operationToSelect = newOperation()
         } else if calculator.operation == nil {
-            self.currentOperation = nil
+            self.operationToSelect = nil
         } else {
             // we unselect the previously selected operation button on
             // receiving certain inputs
             if case .digit(_) = id {
-                self.currentOperation = nil
+                self.operationToSelect = nil
             }
             if id == .decimalPoint {
-                self.currentOperation = nil
+                self.operationToSelect = nil
             }
         }
         

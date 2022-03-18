@@ -69,7 +69,7 @@ class ButtonView: HighlightableBackgroundView {
         }
         
         if self.id.isBinaryOperator {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeBinaryOperation(_:)), name: SharedConstants.binaryOperationChanged, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeBinaryOperation(_:)), name: SharedConstants.selectedBinaryOperationChanged, object: nil)
         }
     }
     
@@ -179,14 +179,13 @@ class ButtonView: HighlightableBackgroundView {
     // MARK: - Binary operators
     @objc func didChangeBinaryOperation(_ binaryOperationChangedNotification: Notification) {
         guard let userInfo = binaryOperationChangedNotification.userInfo,
-              let infoUnderKey = userInfo[SharedConstants.binaryOperationUserInfoKey],
-              let newOperation =  infoUnderKey as? ButtonID? else {
+              let infoUnderKey = userInfo[SharedConstants.selectedBinaryOperationUserInfoKey],
+              let operationToSelect =  infoUnderKey as? ButtonID? else {
             assertionFailure("Could not obtain necessary information from notification")
             return
         }
         
-        // Highlight the operation button (e.g. +, -, *, / etc.) that is currently selected
-        if self.id == newOperation {
+        if self.id == operationToSelect {
             self.visualState = .selected
         } else {
             self.visualState = .normal
