@@ -113,9 +113,27 @@ class ViewController: UIViewController {
             break
         }
         displayNumber = calculator.displayValue ?? -1.0
-        self.currentOperation = {
+        
+        // if this was one of the binary operations,
+        // show the corresponding button in 'selected' state
+        if buttonView.id.isBinaryOperator {
+            self.currentOperation = newOperation()
+        } else if calculator.operation == nil {
+            self.currentOperation = nil
+        } else {
+            // we unselect the previously selected operation button on
+            // receiving certain inputs
+            if case .digit(_) = buttonView.id {
+                self.currentOperation = nil
+            }
+            if buttonView.id == .decimalPoint {
+                self.currentOperation = nil
+            }
+        }
+        
+        func newOperation() -> ButtonID? {
             guard let operation = calculator.operation else { return nil }
-
+            
             switch operation {
             case .multiply:
                 return .multiplication
@@ -132,7 +150,7 @@ class ViewController: UIViewController {
             case .logToTheBase:
                 return .logToTheBase
             }
-        }()
+        }
     }
     
     // MARK: - Private methods
