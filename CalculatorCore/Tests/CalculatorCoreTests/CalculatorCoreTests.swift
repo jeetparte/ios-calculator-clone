@@ -24,6 +24,7 @@ final class CalculatorCoreTests: XCTestCase {
         self.calculator = nil
     }
     
+    // MARK: - Utility methods
     private func newCalculator() {
         if CalculatorCoreTests.which.isMultiple(of: 2) {
             calculator?.allClear()
@@ -32,6 +33,25 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
+    private func inputRandomNumber(in range: ClosedRange<Int>? = nil) {
+        let range = range ?? -999_999_999...999_999_999
+        calculator.inputNumber(Int.random(in: range))
+    }
+    
+    private func inputRandomDigits(numberOfDigits n: Int? = nil) throws {
+        let n = n ?? Int.random(in: 1...10)
+        let count = (1...n)
+        
+        for _ in count {
+            let d = Int.random(in: 0...9)
+            try calculator.inputDigit(d)
+        }
+    }
+    
+    private func inputRandomBinaryOperation() {
+        calculator.inputOperation(.allCases.randomElement()!)
+    }
+    // MARK: - Tests
     func testNegativeEntry() throws {
         // if we start at a negative number e.g. -0,
         // successively inputting digits should give us the same result
@@ -119,7 +139,7 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     func testDisplayValue() {
-        // TODO: -
+        // TODO:
     }
     
     func testSignChange() {
@@ -150,7 +170,7 @@ final class CalculatorCoreTests: XCTestCase {
         //
         // a, op, signChange, b = a op signChange(b) ≠ signChange(a) op b
         
-        // 1 + signChange(3) = -2 ≠ 2
+        // 1 + signChange 3 = 1 + (-3) ≠ (-1) + 3
         try calculator.inputDigit(1)
         calculator.inputOperation(.add)
         calculator.inputOperation(.signChange)
@@ -159,6 +179,40 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.displayValue!, -3.0)
         let result = calculator.evaluate()
         XCTAssertEqual(result, -2.0)
+    }
+    
+    func testSignChangeOnSecondOperandNumbers() {
+        // If we've entered the second operand,
+        // the sign change should apply to it correctly.
+        
+        // After entering 'a op b',
+        // sign change should apply on b
+        // i.e. 'a op b signChange' = 'a op -b'
+        
+        self.inputRandomNumber()
+        self.inputRandomBinaryOperation()
+        self.inputRandomNumber()
+        
+        let b = calculator.displayValue!
+        calculator.inputOperation(.signChange)
+        XCTAssertEqual(-Double(b), calculator.displayValue!)
+    }
+    
+    func testSignChangeOnSecondOperandDigits() throws {
+        // If we've entered the second operand,
+        // the sign change should apply to it correctly.
+        
+        // After entering 'a op b',
+        // sign change should apply on b
+        // i.e. 'a op b signChange' = 'a op -b'
+        
+        try self.inputRandomDigits()
+        self.inputRandomBinaryOperation()
+        try self.inputRandomDigits()
+        
+        let b = calculator.displayValue!
+        calculator.inputOperation(.signChange)
+        XCTAssertEqual(-Double(b), calculator.displayValue!)
     }
     
     func testInputAfterEvaluationDigits() throws {
@@ -200,7 +254,7 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     func testAdditionDigits() throws {
-        // TODO: - test negative operands
+        // TODO:  test negative operands
         
         // 1 + 5 = 6
         let expectedResult = Double(6)
@@ -255,7 +309,7 @@ final class CalculatorCoreTests: XCTestCase {
     
     // TODO: add two pairs of methods for every test - 1. digit input 2. number input
     func testSubtractionDigits() throws {
-        // TODO: - test negative operands
+        // TODO: test negative operands
         
         // 1 - 3 = -2
         // 3 - 1 = 2

@@ -95,7 +95,7 @@ public class SingleStepCalculator {
             if secondOperand == nil {
                 self.operation = op
             }
-            // if 2nd op. is specified, execute it
+            // if 2nd op. is specified, execute the  previous operation,
             // then queue this operation
             else {
                 self.evaluate()
@@ -107,8 +107,8 @@ public class SingleStepCalculator {
     public func inputOperation(_ op: UnaryOperation) {
         if op == .signChange {
             // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
-            // the sign change should apply on the second operand, not the first.
-            if operation != nil {
+            // the sign change should apply on the (to-be-entered) second operand, not the first.
+            if operation != nil && secondOperand == nil {
                 secondOperand = 0.0 // this sets it as the current operand as well
             }
             
@@ -157,7 +157,7 @@ public class SingleStepCalculator {
         self.currentOperand = \.firstOperand
     }
     
-    public enum BinaryOperation {
+    public enum BinaryOperation: CaseIterable {
         case multiply
         case divide
         case add
