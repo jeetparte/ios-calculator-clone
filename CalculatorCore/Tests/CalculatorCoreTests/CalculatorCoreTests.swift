@@ -96,9 +96,14 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
-    func testEvaluateSequenceDigits() throws {
+    func testPartialEvaluationDigits() throws {
         // The sequence of operations
-        // a, op, =, b, =
+        // a, op, =,
+        // should evaluate to a.
+        
+        // and
+        // the sequence of operations
+        // a, op, =,b, =
         // should evaluate to b.
         
         let tests: [(a: Int, op: SingleStepCalculator.BinaryOperation, b: Int)] = [
@@ -111,18 +116,25 @@ final class CalculatorCoreTests: XCTestCase {
         for test in tests {
             try calculator.inputDigit(test.a)
             calculator.inputOperation(test.op)
-            calculator.evaluate()
+            let result1 = calculator.evaluate()
+            XCTAssertEqual(result1, Double(test.a))
+            
             try calculator.inputDigit(test.b)
-            let result = calculator.evaluate()
-            XCTAssertEqual(result, Double(test.b))
+            let result2 = calculator.evaluate()
+            XCTAssertEqual(result2, Double(test.b))
             
             self.newCalculator()
         }
     }
     
-    func testEvaluateSequenceNumbers() {
+    func testPartialEvaluationNumbers() {
         // The sequence of operations
-        // a, op, =, b, =
+        // a, op, =,
+        // should evaluate to a.
+        
+        // and
+        // the sequence of operations
+        // a, op, =,b, =
         // should evaluate to b.
         
         let tests: [(a: Int, op: SingleStepCalculator.BinaryOperation, b: Int)] = [
@@ -135,12 +147,39 @@ final class CalculatorCoreTests: XCTestCase {
         for test in tests {
             calculator.inputNumber(test.a)
             calculator.inputOperation(test.op)
-            calculator.evaluate()
+            let result1 = calculator.evaluate()
+            XCTAssertEqual(result1, Double(test.a))
+            
             calculator.inputNumber(test.b)
-            let result = calculator.evaluate()
-            XCTAssertEqual(result, Double(test.b))
+            let result2 = calculator.evaluate()
+            XCTAssertEqual(result2, Double(test.b))
             
             self.newCalculator()
+        }
+    }
+    
+    func testInputAfterEvaluationDigits() throws {
+        // Any input after evaluation should be considered fresh input
+        // and should override the result of the evaluation
+                
+        // trigger a simple evaluation
+        // 1 + 2 = 3
+        try calculator.inputDigit(1)
+        calculator.inputOperation(.add)
+        try calculator.inputDigit(2)
+        guard calculator.evaluate() == 3.0 else {
+            assertionFailure("Failed test-case setup.")
+            return
+        }
+        
+        // Add new input and check if evaluation interfered with it
+        let successiveInputs = [9, 8, 6, 6 ,5, 1, 2, 3]
+        var expectedResult: Double? = nil
+        for input in successiveInputs {
+            try calculator.inputDigit(input)
+        
+            expectedResult = (expectedResult ?? 0) * 10 + Double(input)
+            XCTAssertEqual(calculator.displayValue, expectedResult)
         }
     }
     
@@ -219,32 +258,6 @@ final class CalculatorCoreTests: XCTestCase {
         let b = calculator.displayValue!
         calculator.inputOperation(.signChange)
         XCTAssertEqual(-Double(b), calculator.displayValue!)
-    }
-    
-    func testInputAfterEvaluationDigits() throws {
-        // Any input after evaluation should be considered fresh input
-        // and should override the result of the evaluation
-                
-        // trigger a simple evaluation
-        // 1 + 2 = 3
-        try calculator.inputDigit(1)
-        calculator.inputOperation(.add)
-        try calculator.inputDigit(2)
-        guard calculator.evaluate() == 3.0 else {
-            assertionFailure("Failed test-case setup.")
-            return
-        }
-        
-        // Add new input and check if evaluation interfered with it
-        let successiveInputs = [9, 8, 6, 6 ,5, 1, 2, 3]
-        var expectedResult: Double? = nil
-        for input in successiveInputs {
-            try calculator.inputDigit(input)
-        
-            expectedResult = (expectedResult ?? 0) * 10 + Double(input)
-            XCTAssertEqual(calculator.displayValue, expectedResult)
-        }
-        
     }
     
     func testAddition() throws {

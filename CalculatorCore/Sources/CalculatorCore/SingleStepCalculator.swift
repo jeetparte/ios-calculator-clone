@@ -60,6 +60,7 @@ public class SingleStepCalculator {
         // and should override the result of the evaluation
         if noActionsSinceLastEvaluation {
             assert(self.currentOperand == \.firstOperand)
+            assert(self.operation == nil)
             // clear the previous result
             firstOperand = 0.0
         }
@@ -126,6 +127,8 @@ public class SingleStepCalculator {
         // if the operator or 2nd operand are not specified,
         // simply return the 1st operand as result
         guard let operation = self.operation, let secondOperand = self.secondOperand  else {
+            self.secondOperand = nil
+            self.operation = nil
             return self.firstOperand!
         }
         
