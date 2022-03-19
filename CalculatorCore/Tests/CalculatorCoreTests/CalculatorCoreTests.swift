@@ -16,10 +16,12 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     
+    /// Runs before every test method.
     override func setUp() {
         self.calculator = SingleStepCalculator()
     }
     
+    /// Runs after every test method.
     override func tearDown() {
         self.calculator = nil
     }
@@ -33,31 +35,9 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
-    /* A note on the *any* functions below -
-     They serve as generator functions for any inputs that are irrrelevant to the test result.
-     See https://softwareengineering.stackexchange.com/a/429622/342114.
-     
-     Ideally, we'd want to record the seed value as part of the test results so that we can reproduce them.
-     */
-    private func inputAnyNumber(in range: ClosedRange<Int>? = nil) {
-        let range = range ?? -999_999_999...999_999_999
-        calculator.inputNumber(Int.random(in: range))
-    }
-    
-    private func inputAnyDigits(numberOfDigits n: Int? = nil) throws {
-        let n = n ?? Int.random(in: 1...10)
-        let count = (1...n)
-        
-        for _ in count {
-            let d = Int.random(in: 0...9)
-            try calculator.inputDigit(d)
-        }
-    }
-    
-    private func inputAnyBinaryOperation() {
-        calculator.inputOperation(.allCases.randomElement()!)
-    }
     // MARK: - Tests
+    
+    // MARK: Input
     func testNegativeEntry() throws {
         // if we start at a negative number e.g. -0,
         // successively inputting digits should give us the same result
@@ -84,7 +64,8 @@ final class CalculatorCoreTests: XCTestCase {
             XCTAssertEqual(-positiveResult, negativeResult)
         }
     }
-    
+
+    // MARK: Evaluation
     func testEvaluateIdentity() {
         // If we evaluate (hit '=') when no binary operation has been specified,
         // it should just return the first operand
@@ -187,11 +168,12 @@ final class CalculatorCoreTests: XCTestCase {
         // TODO:
     }
     
+    // MARK: Sign change
     func testSignChange() {
         // signChange(a) -> -a
         // signChange(-a) -> a
         
-        let numbers = [0, 1, 10, 123]
+        let numbers = [0, 1, 10, 123, -123]
         
         for number in numbers {
             calculator.inputNumber(number)
@@ -226,7 +208,7 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(result, -2.0)
     }
     
-    func testSignChangeOnSecondOperandNumbers() {
+    func testSignChangeOnSecondOperandNumbers() throws {
         // If we've entered the second operand,
         // the sign change should apply to it correctly.
         
@@ -234,32 +216,26 @@ final class CalculatorCoreTests: XCTestCase {
         // sign change should apply on b
         // i.e. 'a op b signChange' = 'a op -b'
         
-        self.inputAnyNumber()
-        self.inputAnyBinaryOperation()
-        self.inputAnyNumber()
+        let tests: [(a: Int, op: SingleStepCalculator.BinaryOperation, b: Int)] = [
+            (1, .add, 10), (1, .subtract, 10), (1, .multiply, 10), (1, .divide, 10), // ...
+            (2, .add, 0), (2, .subtract, 0), (2, .multiply, 0), (2, .divide, 0), // ...
+            (3, .add, -8), (3, .subtract, -8), (3, .multiply, -8), (3, .divide, -8), // ...
+        ]
         
-        let b = calculator.displayValue!
-        calculator.inputOperation(.signChange)
-        XCTAssertEqual(-Double(b), calculator.displayValue!)
+        for test in tests {
+            calculator.inputNumber(test.a)
+            calculator.inputOperation(test.op)
+            calculator.inputNumber(test.b)
+            XCTAssertEqual(Double(test.b), calculator.displayValue!)
+            
+            calculator.inputOperation(.signChange)
+            XCTAssertEqual(-Double(test.b), calculator.displayValue!)
+            
+            self.newCalculator()
+        }
     }
     
-    func testSignChangeOnSecondOperandDigits() throws {
-        // If we've entered the second operand,
-        // the sign change should apply to it correctly.
-        
-        // After entering 'a op b',
-        // sign change should apply on b
-        // i.e. 'a op b signChange' = 'a op -b'
-        
-        try self.inputAnyDigits()
-        self.inputAnyBinaryOperation()
-        try self.inputAnyDigits()
-        
-        let b = calculator.displayValue!
-        calculator.inputOperation(.signChange)
-        XCTAssertEqual(-Double(b), calculator.displayValue!)
-    }
-    
+    // MARK: Basic operations
     func testAddition() throws {
         // 1 + 5 = 6
         let expectedResult = Double(6)
