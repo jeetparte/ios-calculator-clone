@@ -33,12 +33,18 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
-    private func inputRandomNumber(in range: ClosedRange<Int>? = nil) {
+    /* A note on the *any* functions below -
+     They serve as generator functions for any inputs that are irrrelevant to the test result.
+     See https://softwareengineering.stackexchange.com/a/429622/342114.
+     
+     Ideally, we'd want to record the seed value as part of the test results so that we can reproduce them.
+     */
+    private func inputAnyNumber(in range: ClosedRange<Int>? = nil) {
         let range = range ?? -999_999_999...999_999_999
         calculator.inputNumber(Int.random(in: range))
     }
     
-    private func inputRandomDigits(numberOfDigits n: Int? = nil) throws {
+    private func inputAnyDigits(numberOfDigits n: Int? = nil) throws {
         let n = n ?? Int.random(in: 1...10)
         let count = (1...n)
         
@@ -48,7 +54,7 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
-    private func inputRandomBinaryOperation() {
+    private func inputAnyBinaryOperation() {
         calculator.inputOperation(.allCases.randomElement()!)
     }
     // MARK: - Tests
@@ -189,9 +195,9 @@ final class CalculatorCoreTests: XCTestCase {
         // sign change should apply on b
         // i.e. 'a op b signChange' = 'a op -b'
         
-        self.inputRandomNumber()
-        self.inputRandomBinaryOperation()
-        self.inputRandomNumber()
+        self.inputAnyNumber()
+        self.inputAnyBinaryOperation()
+        self.inputAnyNumber()
         
         let b = calculator.displayValue!
         calculator.inputOperation(.signChange)
@@ -206,9 +212,9 @@ final class CalculatorCoreTests: XCTestCase {
         // sign change should apply on b
         // i.e. 'a op b signChange' = 'a op -b'
         
-        try self.inputRandomDigits()
-        self.inputRandomBinaryOperation()
-        try self.inputRandomDigits()
+        try self.inputAnyDigits()
+        self.inputAnyBinaryOperation()
+        try self.inputAnyDigits()
         
         let b = calculator.displayValue!
         calculator.inputOperation(.signChange)
