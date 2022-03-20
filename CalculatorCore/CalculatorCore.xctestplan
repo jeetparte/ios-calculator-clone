@@ -21,17 +21,6 @@
           }
         ]
       }
-    },
-    {
-      "id" : "ACD95E9E-9152-48E4-B13F-C3F25F40027B",
-      "name" : "Config 3",
-      "options" : {
-        "commandLineArgumentEntries" : [
-          {
-            "argument" : "-which 3"
-          }
-        ]
-      }
     }
   ],
   "defaultOptions" : {

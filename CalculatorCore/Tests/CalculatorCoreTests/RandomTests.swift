@@ -16,19 +16,7 @@ import XCTest
  */
 class RandomTests: XCTestCase {
     var calculator: SingleStepCalculator!
-    
-    // a config parameter to run tests a little differently
-    static var which: Int = 0
-    
-    override class func setUp() {
-        // retrieve arguments passed at launch
-        let arg = UserDefaults.standard.integer(forKey: "which")
-        assert(arg != 0)
-        which = arg
-        print("Setup test-case for choice = ", which)
-    }
-    
-    
+ 
     /// Runs before every test method.
     override func setUp() {
         self.calculator = SingleStepCalculator()
@@ -63,21 +51,12 @@ class RandomTests: XCTestCase {
     }
     
     @discardableResult private func anyInput() throws -> Int {
-        switch Self.which {
-        case 1:
-            // Use number input
-            return self.inputAnyNumber()
-        case 2:
-            // Use digit input
+        // Use random input
+        let even = Int.random(in: 1...2).isEven
+        if even {
             return try self.inputAnyDigits()
-        default:
-            // Use random input
-            let even = Int.random(in: 1...2).isMultiple(of: 2)
-            if even {
-                return try self.inputAnyDigits()
-            } else {
-                return self.inputAnyNumber()
-            }
+        } else {
+            return self.inputAnyNumber()
         }
     }
     

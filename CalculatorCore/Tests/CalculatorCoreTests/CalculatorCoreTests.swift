@@ -41,7 +41,8 @@ final class CalculatorCoreTests: XCTestCase {
     
     /// Inputs in either of the accepted ways: digit-by-digit or as a block.
     private func inputAnyMethod(_ number: Int, method: Int? = nil) {
-        switch (method ?? Self.which) {
+        let method = method ?? Self.which
+        switch method {
         case 1:
             // digit input
             number.digits.forEach { d in
@@ -50,9 +51,11 @@ final class CalculatorCoreTests: XCTestCase {
             if number.signum() == -1 {
                 calculator.inputOperation(.signChange)
             }
-        default:
+        case 2:
             // number input
             calculator.inputNumber(number)
+        default:
+            break
         }
     }
     
