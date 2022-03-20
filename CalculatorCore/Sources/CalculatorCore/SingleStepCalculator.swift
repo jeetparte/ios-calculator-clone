@@ -81,7 +81,17 @@ public class SingleStepCalculator {
         }
     }
     
+    /// - Warning: ... offers two numeric input modes: numbers can either be entered digit-by-digit or
+    /// as an entire number at once (i.e. as a block). Input modes are offered for flexibility and a chosen mode should be used exclusively across a particular run of using the calculator.
     public func inputNumber(_ n: Int) {
+        var n = n
+        if self.pendingSignChange {
+            assert(self.currentOperand == \.secondOperand)
+            assert(self.secondOperand?.magnitude == .zero)
+            
+            n.negate()
+            self.pendingSignChange = false
+        }
         currentOperand = operation != nil ? \.secondOperand : \.firstOperand
         self[keyPath: currentOperand] = Double(n)
     }
@@ -105,12 +115,14 @@ public class SingleStepCalculator {
         }
     }
     
+    private var pendingSignChange = false
     public func inputOperation(_ op: UnaryOperation) {
         if op == .signChange {
             // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
             // the sign change should apply on the (to-be-entered) second operand, not the first.
             if operation != nil && secondOperand == nil {
-                secondOperand = 0.0 // this sets it as the current operand as well
+                self.secondOperand = 0.0 // this sets it as the current operand as well
+                self.pendingSignChange = true
             }
             
             self[keyPath: currentOperand]?.negate()

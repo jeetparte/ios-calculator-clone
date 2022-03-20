@@ -102,4 +102,18 @@ class RandomTests: XCTestCase {
         calculator.inputOperation(.signChange)
         XCTAssertEqual(-Double(b), calculator.displayValue!)
     }
+    
+    func testSignChangeAfterBinaryOperation() throws {
+        // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
+        // the sign change should apply on the second operand, not the first.
+        //
+        // a, op, signChange, b = a op signChange(b) ≠ signChange(a) op b
+        
+        let a = try self.anyInput()
+        self.inputAnyBinaryOperation()
+        calculator.inputOperation(.signChange)
+        XCTAssertNotEqual(calculator.displayValue!, -Double(a))
+        let b = try self.anyInput()
+        XCTAssertEqual(calculator.displayValue!, -Double(b))
+    }
 }
