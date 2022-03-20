@@ -39,23 +39,28 @@ final class CalculatorCoreTests: XCTestCase {
         return CalculatorCoreTests.which.isEven ? calculator.evaluate() : calculator.displayValue!
     }
     
+    enum InputMethod: Int {
+        case digit = 1
+        case number = 2
+    }
     /// Inputs in either of the accepted ways: digit-by-digit or as a block.
-    private func inputAnyMethod(_ number: Int, method: Int? = nil) {
-        let method = method ?? Self.which
+    private func inputAnyMethod(_ number: Int) {
+        let method = InputMethod(rawValue: Self.which) ?? .digit
+        
+        self.input(number, inputMethod: method)
+    }
+    
+    private func input(_ number: Int, inputMethod method: InputMethod) {
         switch method {
-        case 1:
-            // digit input
+        case .digit:
             number.digits.forEach { d in
                 try! calculator.inputDigit(d)
             }
             if number.signum() == -1 {
                 calculator.inputOperation(.signChange)
             }
-        case 2:
-            // number input
+        case .number:
             calculator.inputNumber(number)
-        default:
-            break
         }
     }
     
@@ -84,15 +89,15 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     //MARK: - Test utility methods
-    func testInputAnyMethod() {
-        // Test that different input methods is identical
+    func testInputMethods() {
+        // Test that different input methods are identical
         let numbers = [12, -23, 456, 9999, 0, -9999, 6, 456]
         
         for number in numbers {
-            self.inputAnyMethod(number, method: 1)
+            self.input(number, inputMethod: .digit)
             let digitInput = getDisplayValue()
             self.newCalculator()
-            self.inputAnyMethod(number, method: 2) //*
+            self.input(number, inputMethod: .number)
             let numberInput = getDisplayValue()
             XCTAssertEqual(digitInput, numberInput)
             self.newCalculator()
@@ -102,6 +107,34 @@ final class CalculatorCoreTests: XCTestCase {
     // MARK: - Tests
     
     // MARK: Input
+    func testNumberInput() {
+        // Numbers entered update the display value and evaluate to themselves.
+        let numbers = [0, 1, 12, -12, 345, 5, -67, 890, 123_456_7890]
+        
+        for number in numbers {
+            self.inputAnyMethod(number)
+            XCTAssertEqual(calculator.displayValue!, Double(number))
+            XCTAssertEqual(calculator.evaluate(), Double(number))
+        }
+    }
+    
+    func testDecimalInsertionDigits() throws {
+        // If numbers are entered as digits then
+        // the sequence of operations
+        // '123 . 0456' should result in a decimal value of 123.0456
+        
+        try calculator.inputDigits(1, 2, 3)
+        calculator.insertDecimalPoint()
+        try calculator.inputDigits(0, 4, 5, 6)
+        
+        XCTAssertEqual(self.getDisplayValue(), 123.0456)
+        self.newCalculator()
+    }
+    
+    func testSignChangeAfterDecimalPoint() {
+        
+    }
+    
     func testNegativeEntry() throws {
         // if we start at a negative number e.g. -0,
         // successively inputting digits should give us the same result
@@ -175,7 +208,7 @@ final class CalculatorCoreTests: XCTestCase {
     
     func testInputAfterEvaluationDigits() throws {
         // Any input after evaluation should be considered fresh input
-        // and should override the result of the evaluation
+        // and should override the result of the evaluation.
                 
         // trigger a simple evaluation
         // 1 + 2 = 3
@@ -199,12 +232,109 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(expectedResult, calculator.evaluate())
     }
     
+    func testImplicitEvaluation() {
+        // If an operator is entered, after an evalutable expression has been entered,
+        // that expression is evaluated and made the first operand for the operator just entered.
+        
+        let tests: [(expression: XOperatorY, operator: Operator, rhs: Int, finalResult: Double)] = [
+            ((2, .multiply, 3), .add, 1, finalResult: 7),
+            ((5, .subtract, 2), .multiply, 3, finalResult: 9),
+            ((10, .add, -3), .multiply, 7, finalResult: 49),
+            ((144, .divide, 12), .divide, 3, finalResult: 4),
+        ]
+        
+        for test in tests {
+            let expr = test.expression
+            self.inputAnyMethod(expr.a)
+            calculator.inputOperation(expr.op)
+            self.inputAnyMethod(expr.b)
+            
+            calculator.inputOperation(test.operator)
+            self.inputAnyMethod(test.rhs)
+            
+            XCTAssertEqual(calculator.evaluate(), test.finalResult)
+        }
+    }
+    
+    func testOperatorOverriding() {
+        // If an operator is entered just after the previous one,
+        // it overrides it.
+        
+        let tests: [(a: Int, op1: Operator, op2: Operator, b: Int, result: Double)] = [
+            (2, .multiply, .subtract, 2, result: 0),
+            (2, .subtract, .multiply, 2, result: 4),
+            (10, .add, .divide, 2, result: 5),
+        ]
+        
+        for test in tests {
+            self.inputAnyMethod(test.a)
+            calculator.inputOperation(test.op1)
+            calculator.inputOperation(test.op2)
+            self.inputAnyMethod(test.b)
+            XCTAssertEqual(calculator.evaluate(), test.result)
+        }
+    }
+    
+    // MARK: Display value
+    func testInitialDisplayValue() {
+        // The initial display value on a calculator must be zero.
+        let calculator = SingleStepCalculator()
+        XCTAssertEqual(calculator.displayValue, 0)
+    }
+    
     func testDisplayValue() {
-        // TODO:
+        // The display value on the calculator must change as expected after every input.
+        
+        let tests: [XOperatorYResult] = [
+            (123, .add, -23, expected: 100),
+            (-23, .multiply, 2, expected: -46),
+            (0, .subtract, -5, expected: 5),
+            (10, .divide, -2, expected: -5)
+        ]
+        
+        for test in tests {
+            let a = Double(test.a)
+            let b = Double(test.b)
+            let result = Double(test.expected)
+            
+            // on initial input, display value = first operand
+            self.inputAnyMethod(test.a)
+            XCTAssertEqual(calculator.displayValue!, a)
+            // after operation input, display value = first operand
+            calculator.inputOperation(test.op)
+            XCTAssertEqual(calculator.displayValue!, a)
+            // on input after an operator, display value = second operand
+            self.inputAnyMethod(test.b)
+            XCTAssertEqual(calculator.displayValue!, b)
+            // after evaluation, display value = operator(1st operand, 2nd operand)
+            calculator.evaluate()
+            XCTAssertEqual(calculator.displayValue!, result)
+        }
+    }
+    
+    func testDisplayValueDigits() throws {
+        // When numbers are entered digit-by-digit, the display value must update every digit.
+
+        // expression: '123 + 26'
+        try calculator.inputDigit(1)
+        XCTAssertEqual(calculator.displayValue!, 1)
+        try calculator.inputDigit(2)
+        XCTAssertEqual(calculator.displayValue!, 12)
+        try calculator.inputDigit(3)
+        XCTAssertEqual(calculator.displayValue!, 123)
+        
+        calculator.inputOperation(.add)
+        
+        try calculator.inputDigit(2)
+        XCTAssertEqual(calculator.displayValue!, 2)
+        try calculator.inputDigit(6)
+        XCTAssertEqual(calculator.displayValue!, 26)
     }
     
     // MARK: Sign change
     func testSignChange() {
+        // A sign change operation flips the sign of the value it operates on.
+        
         // signChange(a) -> -a
         // signChange(-a) -> a
         
@@ -225,8 +355,43 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
-    func testSignChangeAfterBinaryOperation() throws {
+    func testSignChangeBeforeFirstOperand() {
+        // If we input a sign change operation before entering the first operand,
+        // it should apply to it correctly.
+        
+        // 'signChange a' or 'signChange a =' should equal -a
+        let tests = [1, 0, -0, -999]
+        
+        for a in tests {
+            calculator.inputOperation(.signChange)
+            self.inputAnyMethod(a)
+            XCTAssertEqual(calculator.displayValue, -Double(a))
+            XCTAssertEqual(calculator.evaluate(), -Double(a))
+            
+            self.newCalculator()
+        }
+    }
+    
+    func testSignChangeAfterFirstOperand() {
+        // If we input a sign change operation after entering the first operand,
+        // it should apply to it correctly.
+        
+        // 'a signChange' or 'a signChange =' should equal -a
+        let tests = [1, 0, -0, -999]
+        
+        for a in tests {
+            self.inputAnyMethod(a)
+            calculator.inputOperation(.signChange)
+            XCTAssertEqual(calculator.displayValue, -Double(a))
+            XCTAssertEqual(calculator.evaluate(), -Double(a))
+            
+            self.newCalculator()
+        }
+    }
+        
+    func testSignChangeBeforeSecondOperand() throws {
         // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
+        // but before the second operand,
         // the sign change should apply on the second operand, not the first.
         //
         // a, op, signChange, b = a op signChange(b) ≠ signChange(a) op b
@@ -242,28 +407,9 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(result, -2.0)
     }
     
-    func testSignChangeBeforeFirstOperand() {
-        // If we input a sign change operation before entering the first operand,
-        // it should apply to it correctly
-        
-        // 'signChange a' or 'signChange a =' should equal -a
-        let tests = [1, 0, -0, -999]
-        
-        for a in tests {
-            calculator.inputOperation(.signChange)
-            self.inputAnyMethod(a)
-            XCTAssertEqual(calculator.displayValue, -Double(a))
-            XCTAssertEqual(calculator.evaluate(), -Double(a))
-            
-            self.newCalculator()
-        }
-        
-    }
-    
-    
     func testSignChangeAfterSecondOperand() throws {
         // If we input a sign change operation after entering the second operand,
-        // it should apply to it correctly
+        // it should apply to it correctly.
         
         // After entering 'a op b',
         // sign change should apply on b
@@ -287,6 +433,32 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     // MARK: Basic operations
+    func testAllClear() {
+        // An all-clear operation should reset the calculator to its initial state.
+        
+        // First, exercise the calculator
+        // expression: '12 * 3 / 2 + signChange 7 * 5'
+        self.inputAnyMethod(12)
+        calculator.inputOperation(.multiply)
+        self.inputAnyMethod(3)
+        calculator.inputOperation(.divide)
+        self.inputAnyMethod(2)
+        calculator.inputOperation(.add)
+        calculator.inputOperation(.signChange)
+        self.inputAnyMethod(7)
+        calculator.inputOperation(.multiply)
+        self.inputAnyMethod(5)
+        
+        // set up a comparison
+        let newCalculator = SingleStepCalculator()
+        // verify that the state has changed
+        XCTAssertNotEqual(calculator, newCalculator)
+        // then, clear it
+        calculator.allClear() // *
+        // and compare its state to that a new calculator.
+        XCTAssertEqual(calculator, newCalculator)
+    }
+    
     func testAddition() throws {
         let tests: [XOperatorYResult] = [
             (1, .add, 5, expected: 6),

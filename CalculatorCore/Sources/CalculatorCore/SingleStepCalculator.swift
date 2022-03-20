@@ -85,6 +85,10 @@ public class SingleStepCalculator {
         }
     }
     
+    public func insertDecimalPoint() {
+        
+    }
+    
     /// - Warning: ... offers two numeric input modes: numbers can either be entered digit-by-digit or
     /// as an entire number at once (i.e. as a block). Input modes are offered for flexibility and a chosen mode should be used exclusively across a particular run of using the calculator.
     public func inputNumber(_ n: Int) {
@@ -207,5 +211,19 @@ public class SingleStepCalculator {
 extension SingleStepCalculator: CustomStringConvertible {
     public var description: String {
         return "a: \(String(describing: firstOperand)) , b: \(String(describing: secondOperand)), operation: \(String(describing: operation))"
+    }
+}
+
+extension SingleStepCalculator: Equatable {
+    public static func == (lhs: SingleStepCalculator, rhs: SingleStepCalculator) -> Bool {
+        // A calculator is entirely state driven,
+        // so two calculators are equal if they have the same state.
+        return  lhs.firstOperand == rhs.firstOperand &&
+                lhs.secondOperand == rhs.secondOperand &&
+                lhs.operation == rhs.operation &&
+                lhs.currentOperand == rhs.currentOperand &&
+                lhs.isDirty == rhs.isDirty &&
+                lhs.pendingSignChange == rhs.pendingSignChange &&
+                lhs.noActionsSinceLastEvaluation == rhs.noActionsSinceLastEvaluation
     }
 }
