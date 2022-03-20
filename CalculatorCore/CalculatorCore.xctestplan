@@ -2,7 +2,7 @@
   "configurations" : [
     {
       "id" : "7A989D91-8340-4016-9B6F-EE7869BEE29E",
-      "name" : "Config 1",
+      "name" : "Digit input + misc.",
       "options" : {
         "commandLineArgumentEntries" : [
           {
@@ -13,7 +13,7 @@
     },
     {
       "id" : "47ECFF94-85B4-4A7E-8604-D9817FC776C0",
-      "name" : "Config 2",
+      "name" : "Number input + misc.",
       "options" : {
         "commandLineArgumentEntries" : [
           {
