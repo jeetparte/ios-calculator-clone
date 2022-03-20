@@ -15,6 +15,7 @@ public class SingleStepCalculator {
             self.currentOperand = \.firstOperand
             
             self.noActionsSinceLastEvaluation = false
+            self.isDirty = true
         }
     }
     
@@ -24,6 +25,7 @@ public class SingleStepCalculator {
                 self.currentOperand = \.secondOperand
             }
             self.noActionsSinceLastEvaluation = false
+            self.isDirty = true
         }
     }
     
@@ -31,10 +33,12 @@ public class SingleStepCalculator {
     public var operation: BinaryOperation? {
         didSet {
             self.noActionsSinceLastEvaluation = false
+            self.isDirty = true
         }
     }
     
     private var currentOperand = \SingleStepCalculator.firstOperand
+    private var isDirty = false
     
     /** The value of the operand which is currently most suitable for display.
         - Note: A return value of `nil` signifies ...
@@ -86,8 +90,7 @@ public class SingleStepCalculator {
     public func inputNumber(_ n: Int) {
         var n = n
         if self.pendingSignChange {
-            assert(self.currentOperand == \.secondOperand)
-            assert(self.secondOperand?.magnitude == .zero)
+            assert(self[keyPath: currentOperand]?.magnitude == .zero)
             
             n.negate()
             self.pendingSignChange = false
@@ -115,12 +118,21 @@ public class SingleStepCalculator {
         }
     }
     
+    /// For number input, we need to track any sign changes and apply them at the time of input.
     private var pendingSignChange = false
     public func inputOperation(_ op: UnaryOperation) {
         if op == .signChange {
+            
+            // If sign change is entered before first operand,
+            // queue it for later.
+            if !self.isDirty {
+                self.pendingSignChange = true
+            }
+            
             // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
             // the sign change should apply on the (to-be-entered) second operand, not the first.
             if operation != nil && secondOperand == nil {
+                assert(self.isDirty)
                 self.secondOperand = 0.0 // this sets it as the current operand as well
                 self.pendingSignChange = true
             }
@@ -165,11 +177,16 @@ public class SingleStepCalculator {
     }
     
     public func allClear() {
-        firstOperand = 0.0
-        secondOperand = nil
-        operation = nil
-                
+        // reset to initial state
+        self.firstOperand = 0.0
+        self.secondOperand = nil
         self.currentOperand = \.firstOperand
+
+        self.operation = nil
+
+        self.isDirty = false
+        self.pendingSignChange = false
+        self.noActionsSinceLastEvaluation = false
     }
     
     public enum BinaryOperation: CaseIterable {

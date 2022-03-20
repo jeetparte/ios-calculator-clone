@@ -242,9 +242,28 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(result, -2.0)
     }
     
-    func testSignChangeOnSecondOperand() throws {
-        // If we've entered the second operand,
-        // the sign change should apply to it correctly.
+    func testSignChangeBeforeFirstOperand() {
+        // If we input a sign change operation before entering the first operand,
+        // it should apply to it correctly
+        
+        // 'signChange a' or 'signChange a =' should equal -a
+        let tests = [1, 0, -0, -999]
+        
+        for a in tests {
+            calculator.inputOperation(.signChange)
+            self.inputAnyMethod(a)
+            XCTAssertEqual(calculator.displayValue, -Double(a))
+            XCTAssertEqual(calculator.evaluate(), -Double(a))
+            
+            self.newCalculator()
+        }
+        
+    }
+    
+    
+    func testSignChangeAfterSecondOperand() throws {
+        // If we input a sign change operation after entering the second operand,
+        // it should apply to it correctly
         
         // After entering 'a op b',
         // sign change should apply on b
