@@ -101,7 +101,8 @@ final class CalculatorCoreTests: XCTestCase {
     func testNegativeEntry() throws {
         // if we start at a negative number e.g. -0,
         // successively inputting digits should give us the same result
-        // as if we'd started with a positive number but with a negative sign
+        // as if we'd started with a positive number,
+        // but with a negative sign instead
         
         // e.g. if inputs: 0,1,2,3 --> 123,
         // then inputs: -0,1,2,3 --> -123
@@ -116,7 +117,7 @@ final class CalculatorCoreTests: XCTestCase {
             // new calculator
             self.newCalculator()
             
-            calculator.inputNumber(startingNumber)
+            self.inputAnyMethod(startingNumber)
             calculator.inputOperation(.signChange)
             try calculator.inputDigits(1,2,3)
             let negativeResult = calculator.displayValue!
@@ -132,12 +133,12 @@ final class CalculatorCoreTests: XCTestCase {
         let testNumbers = [1, -2]
         
         for testNumber in testNumbers {
-            calculator.inputNumber(testNumber)
+            self.inputAnyMethod(testNumber)
             XCTAssertEqual(Double(testNumber), calculator.evaluate())
         }
     }
     
-    func testPartialEvaluationDigits() throws {
+    func testPartialEvaluation() throws {
         // The sequence of operations
         // a, op, =,
         // should evaluate to a.
@@ -149,49 +150,18 @@ final class CalculatorCoreTests: XCTestCase {
         
         let tests: [XOperatorY] = [
             (4, .multiply, 2),
-            (3, .subtract, 1),
-            (9, .divide, 5),
-            (7, .add, 3),
-        ]
-        
-        for test in tests {
-            try calculator.inputDigit(test.a)
-            calculator.inputOperation(test.op)
-            let result1 = calculator.evaluate()
-            XCTAssertEqual(result1, Double(test.a))
-            
-            try calculator.inputDigit(test.b)
-            let result2 = calculator.evaluate()
-            XCTAssertEqual(result2, Double(test.b))
-            
-            self.newCalculator()
-        }
-    }
-    
-    func testPartialEvaluationNumbers() {
-        // The sequence of operations
-        // a, op, =,
-        // should evaluate to a.
-        
-        // and
-        // the sequence of operations
-        // a, op, =,b, =
-        // should evaluate to b.
-        
-        let tests: [XOperatorY] = [
-            (40, .multiply, 20),
-            (30, .subtract, 10),
-            (10, .divide, 7),
+            (-30, .subtract, 10),
+            (9, .divide, -5),
             (19, .add, 13),
         ]
         
         for test in tests {
-            calculator.inputNumber(test.a)
+            self.inputAnyMethod(test.a)
             calculator.inputOperation(test.op)
             let result1 = calculator.evaluate()
             XCTAssertEqual(result1, Double(test.a))
             
-            calculator.inputNumber(test.b)
+            self.inputAnyMethod(test.b)
             let result2 = calculator.evaluate()
             XCTAssertEqual(result2, Double(test.b))
             
@@ -209,7 +179,7 @@ final class CalculatorCoreTests: XCTestCase {
         calculator.inputOperation(.add)
         try calculator.inputDigit(2)
         guard calculator.evaluate() == 3.0 else {
-            assertionFailure("Failed test-case setup.")
+            XCTFail("Failed test-case setup.")
             return
         }
         
@@ -222,6 +192,7 @@ final class CalculatorCoreTests: XCTestCase {
             expectedResult = (expectedResult ?? 0) * 10 + Double(input)
             XCTAssertEqual(calculator.displayValue, expectedResult)
         }
+        XCTAssertEqual(expectedResult, calculator.evaluate())
     }
     
     func testDisplayValue() {
@@ -234,9 +205,10 @@ final class CalculatorCoreTests: XCTestCase {
         // signChange(-a) -> a
         
         let numbers = [0, 1, 10, 123, -123]
+        // TODO: check floating point cases - +inf, -inf, pi
         
         for number in numbers {
-            calculator.inputNumber(number)
+            self.inputAnyMethod(number)
             calculator.inputOperation(.signChange)
             let negativeValue = getDisplayValue()
             XCTAssertEqual(Double(-number), negativeValue)
@@ -244,20 +216,22 @@ final class CalculatorCoreTests: XCTestCase {
             calculator.inputOperation(.signChange)
             let postiveValue = getDisplayValue()
             XCTAssertEqual(Double(number), postiveValue)
+            
+            self.newCalculator()
         }
     }
     
-    func testSignChangeAfterBinaryOperationDigits() throws {
+    func testSignChangeAfterBinaryOperation() throws {
         // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
         // the sign change should apply on the second operand, not the first.
         //
         // a, op, signChange, b = a op signChange(b) ≠ signChange(a) op b
         
         // 1 + signChange 3 = 1 + (-3) ≠ (-1) + 3
-        try calculator.inputDigit(1)
+        self.inputAnyMethod(1)
         calculator.inputOperation(.add)
         calculator.inputOperation(.signChange)
-        try calculator.inputDigit(3)
+        self.inputAnyMethod(3)
         // 2nd operand should now display as -3
         XCTAssertEqual(calculator.displayValue!, -3.0)
         let result = calculator.evaluate()
