@@ -238,7 +238,7 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(result, -2.0)
     }
     
-    func testSignChangeOnSecondOperandNumbers() throws {
+    func testSignChangeOnSecondOperand() throws {
         // If we've entered the second operand,
         // the sign change should apply to it correctly.
         
@@ -253,11 +253,9 @@ final class CalculatorCoreTests: XCTestCase {
         ]
         
         for test in tests {
-            calculator.inputNumber(test.a)
+            self.inputAnyMethod(test.a)
             calculator.inputOperation(test.op)
-            calculator.inputNumber(test.b)
-            XCTAssertEqual(Double(test.b), calculator.displayValue!)
-            
+            self.inputAnyMethod(test.b)
             calculator.inputOperation(.signChange)
             XCTAssertEqual(-Double(test.b), calculator.displayValue!)
             
