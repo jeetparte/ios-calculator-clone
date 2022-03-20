@@ -28,7 +28,7 @@ final class CalculatorCoreTests: XCTestCase {
     
     // MARK: - Utility methods
     private func newCalculator() {
-        if CalculatorCoreTests.which.isMultiple(of: 2) {
+        if CalculatorCoreTests.which.isEven {
             calculator?.allClear()
         } else {
             calculator = .init()
@@ -36,7 +36,7 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     private func getDisplayValue() -> Double {
-        return CalculatorCoreTests.which.isMultiple(of: 2) ? calculator.evaluate() : calculator.displayValue!
+        return CalculatorCoreTests.which.isEven ? calculator.evaluate() : calculator.displayValue!
     }
     
     /// Inputs in either of the accepted ways: digit-by-digit or as a block.
@@ -77,7 +77,7 @@ final class CalculatorCoreTests: XCTestCase {
             }
             
             // optionally clear for next test
-            if CalculatorCoreTests.which.isMultiple(of: 2) {
+            if CalculatorCoreTests.which.isEven {
                 self.newCalculator()
             }
         }
@@ -85,6 +85,7 @@ final class CalculatorCoreTests: XCTestCase {
     
     //MARK: - Test utility methods
     func testInputAnyMethod() {
+        // Test that different input methods is identical
         let numbers = [12, -23, 456, 9999, 0, -9999, 6, 456]
         
         for number in numbers {

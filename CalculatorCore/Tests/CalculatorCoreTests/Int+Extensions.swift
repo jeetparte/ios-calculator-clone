@@ -18,4 +18,8 @@ extension Int {
             return d
         }
     }
+    
+    var isEven: Bool {
+        return self.isMultiple(of: 2)
+    }
 }
