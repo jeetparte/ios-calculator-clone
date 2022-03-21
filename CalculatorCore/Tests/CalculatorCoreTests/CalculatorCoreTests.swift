@@ -155,10 +155,6 @@ final class CalculatorCoreTests: XCTestCase {
         
     }
     
-    func testSignChangeAfterDecimalPoint() {
-        
-    }
-    
     func testNegativeEntry() throws {
         // if we start at a negative number e.g. -0,
         // successively inputting digits should give us the same result
@@ -377,6 +373,35 @@ final class CalculatorCoreTests: XCTestCase {
             
             self.newCalculator()
         }
+    }
+    
+    func testSignChangeAfterDecimalPoint() throws {
+        // The sign change operation must continue to work correctly
+        // when entered (at any moment) after a decimal point insertion.
+        
+        // expression: '1.0456' with interspersed signChange calls
+        try calculator.inputDigit(1)
+        calculator.insertDecimalPoint()
+        // just after decimal insertion:
+        calculator.inputOperation(.signChange)
+        XCTAssertEqual(calculator.displayValue!, -1.0)
+        calculator.inputOperation(.signChange)
+        XCTAssertEqual(calculator.displayValue!, 1.0)
+        // adding 0 shouldn't change anything
+        try calculator.inputDigit(0)
+        XCTAssertEqual(calculator.displayValue!, 1.0)
+        
+        try calculator.inputDigit(4)
+        calculator.inputOperation(.signChange)
+        XCTAssertEqual(calculator.displayValue!, -1.04)
+        
+        try calculator.inputDigit(5)
+        calculator.inputOperation(.signChange)
+        XCTAssertEqual(calculator.displayValue!, 1.045)
+        
+        try calculator.inputDigit(6)
+        calculator.inputOperation(.signChange)
+        XCTAssertEqual(calculator.displayValue!, -1.0456)
     }
     
     func testSignChangeBeforeFirstOperand() {
