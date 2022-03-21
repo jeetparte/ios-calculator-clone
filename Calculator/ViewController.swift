@@ -86,7 +86,7 @@ class ViewController: UIViewController {
         case .digit(let n):
             try! calculator.inputDigit(n)
         case .decimalPoint:
-            break
+            calculator.insertDecimalPoint()
         case .clear:
             calculator.allClear()
         case .signChange:

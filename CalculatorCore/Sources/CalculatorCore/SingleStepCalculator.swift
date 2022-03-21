@@ -6,6 +6,8 @@
  See https://en.wikipedia.org/wiki/Calculator_input_methods#Immediate_execution for details.
  */
 
+import Foundation
+
 public class SingleStepCalculator {
     /// - Note: This property should never be `nil`. It is an optional only so that it can be accessed together with
     /// the optional secondOperand property using a common KeyPath.
@@ -51,9 +53,8 @@ public class SingleStepCalculator {
     }
     
     /**
-            - Precondition: *d* must one of the digits between 0 and 9.
-     
-            - Throws: `CalculatorError.invalidInput` if *d* is not a single-digit number between 0 and 9.
+        - Precondition: *d* must one of the digits between 0 and 9.     
+        - Throws: `CalculatorError.invalidInput` if *d* is not a single-digit number between 0 and 9.
      */
     public func inputDigit(_ d: Int) throws {
         guard (0...9) ~= d else {
@@ -62,21 +63,26 @@ public class SingleStepCalculator {
         
         // Any input after evaluation should be considered fresh input
         // and should override the result of the evaluation
-        if noActionsSinceLastEvaluation {
-            assert(self.currentOperand == \.firstOperand)
-            assert(self.operation == nil)
-            // clear the previous result
-            firstOperand = 0.0
+        if self.followsEvaluation() {
+            self.clearEvaluationResult()
         }
         
         // when there's a queued operation, we redirect input to second operand
-        if operation != nil && secondOperand == nil {
-            secondOperand = 0.0 // this sets it as the current operand as well
+        if self.followsBinaryOperator() {
+            self.redirectInputToSecondOperand()
         }
         
-        let currentValue = self[keyPath: currentOperand]!
-        let d = Double(d)
-        self[keyPath: currentOperand] = currentValue * 10 + Double(signOf: currentValue, magnitudeOf: d)
+        if self.hasInsertedDecimal {
+            // this is a decimal number,
+            // input must go into the fractional part
+            fractionalPart += "\(d)"
+        } else {
+            // this in not a decimal number (so far),
+            // input must go into the integral part
+            let currentValue = self[keyPath: currentOperand]!
+            let d = Double(d)
+            self[keyPath: currentOperand] = currentValue * 10 + Double(signOf: currentValue, magnitudeOf: d)
+        }
     }
     
     public func inputDigits(_ digits: Int ...) throws {
@@ -85,11 +91,75 @@ public class SingleStepCalculator {
         }
     }
     
-    public func insertDecimalPoint() {
-        
+    private func followsBinaryOperator() -> Bool {
+        // true if a binary operation has been entered
+        // but the input of the second operand has not begun
+        return operation != nil && secondOperand == nil
     }
     
-    /// - Warning: ... offers two numeric input modes: numbers can either be entered digit-by-digit or
+    private func redirectInputToSecondOperand() {
+        // Set the 2nd operand as current and initialize it to 0.
+        self.secondOperand = 0.0 // this sets it as the current operand as well
+    }
+    
+    private func followsEvaluation() -> Bool {
+        return self.noActionsSinceLastEvaluation
+    }
+    
+    private func clearEvaluationResult() {
+        assert(self.currentOperand == \.firstOperand)
+        assert(self.operation == nil)
+        // clear the previous result
+        firstOperand = 0.0
+    }
+    
+    /// You may want to track this property if you are interested in modifying the presentation of the calculator's display value
+    /// to show the decimal point when it is inserted.
+    public var hasInsertedDecimal: Bool = false {
+        didSet {
+            // post a notification to clients?
+        }
+    }
+    
+    /// The fractional part of the current operand.
+    /// This is typed as `String` to preserve any leading zeroes.
+    private var fractionalPart: String = "" {
+        didSet {
+            // check that this is a valid number
+            guard Int(self.fractionalPart) != nil else { return }
+            // Update the current operand:
+            
+            assert(self[keyPath: currentOperand] != nil)
+            let currentValue = self[keyPath: currentOperand]!
+            
+            let integralPart = abs(currentValue.rounded(.towardZero))
+            let fractionalPart = Decimal(sign: .plus,
+                                         exponent: -fractionalPart.count,
+                                         significand: Decimal(string: fractionalPart)!)
+                        
+            let combinedValue = integralPart +
+                                NSDecimalNumber(decimal: fractionalPart).doubleValue
+            self[keyPath: currentOperand] = Double(signOf: currentValue, magnitudeOf: combinedValue)
+        }
+    }
+        
+    public func insertDecimalPoint() {
+        // clear previous evaluation, if present
+        if self.followsEvaluation() {
+            self.clearEvaluationResult()
+        }
+        
+        // initialize operand, if required
+        if self.followsBinaryOperator() {
+            self.redirectInputToSecondOperand()
+        }
+        
+        // modify state so that any digit inputs that follow
+        // go into the fractional part
+        self.hasInsertedDecimal = true
+    }
+    
+    /// - Warning: The calculator offers two numeric input modes: numbers can either be entered digit-by-digit or
     /// as an entire number at once (i.e. as a block). Input modes are offered for flexibility and a chosen mode should be used exclusively across a particular run of using the calculator.
     public func inputNumber(_ n: Int) {
         var n = n
@@ -135,9 +205,9 @@ public class SingleStepCalculator {
             
             // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
             // the sign change should apply on the (to-be-entered) second operand, not the first.
-            if operation != nil && secondOperand == nil {
+            if self.followsBinaryOperator() {
                 assert(self.isDirty)
-                self.secondOperand = 0.0 // this sets it as the current operand as well
+                self.redirectInputToSecondOperand()
                 self.pendingSignChange = true
             }
             
@@ -191,6 +261,9 @@ public class SingleStepCalculator {
         self.isDirty = false
         self.pendingSignChange = false
         self.noActionsSinceLastEvaluation = false
+        
+        self.hasInsertedDecimal = false
+        self.fractionalPart = ""
     }
     
     public enum BinaryOperation: CaseIterable {
@@ -218,12 +291,14 @@ extension SingleStepCalculator: Equatable {
     public static func == (lhs: SingleStepCalculator, rhs: SingleStepCalculator) -> Bool {
         // A calculator is entirely state driven,
         // so two calculators are equal if they have the same state.
-        return  lhs.firstOperand == rhs.firstOperand &&
-                lhs.secondOperand == rhs.secondOperand &&
-                lhs.operation == rhs.operation &&
-                lhs.currentOperand == rhs.currentOperand &&
-                lhs.isDirty == rhs.isDirty &&
-                lhs.pendingSignChange == rhs.pendingSignChange &&
-                lhs.noActionsSinceLastEvaluation == rhs.noActionsSinceLastEvaluation
+        return lhs.firstOperand == rhs.firstOperand
+            && lhs.secondOperand == rhs.secondOperand
+            && lhs.operation == rhs.operation
+            && lhs.currentOperand == rhs.currentOperand
+            && lhs.isDirty == rhs.isDirty
+            && lhs.pendingSignChange == rhs.pendingSignChange
+            && lhs.noActionsSinceLastEvaluation == rhs.noActionsSinceLastEvaluation
+            && lhs.hasInsertedDecimal == rhs.hasInsertedDecimal
+            && lhs.fractionalPart == rhs.fractionalPart
     }
 }

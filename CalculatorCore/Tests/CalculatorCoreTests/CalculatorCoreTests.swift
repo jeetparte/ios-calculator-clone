@@ -126,9 +126,33 @@ final class CalculatorCoreTests: XCTestCase {
         try calculator.inputDigits(1, 2, 3)
         calculator.insertDecimalPoint()
         try calculator.inputDigits(0, 4, 5, 6)
-        
         XCTAssertEqual(self.getDisplayValue(), 123.0456)
+        
+        // More fractional digits
         self.newCalculator()
+        try calculator.inputDigits(1, 2, 3)
+        calculator.insertDecimalPoint()
+        try calculator.inputDigits(0, 0, 4, 5, 6, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+        XCTAssertEqual(self.getDisplayValue(), 123.004569876543210)
+        
+        
+        // Negative number
+        // '-123 . 0456' should result in a decimal value of -123.0456
+        self.newCalculator()
+        calculator.inputOperation(.signChange)
+        try calculator.inputDigits(1, 2, 3)
+        calculator.insertDecimalPoint()
+        try calculator.inputDigits(0, 4, 5, 6)
+        XCTAssertEqual(self.getDisplayValue(), -123.0456)
+        
+        // Negative number - More fractional digits
+        self.newCalculator()
+        calculator.inputOperation(.signChange)
+        try calculator.inputDigits(1, 2, 3)
+        calculator.insertDecimalPoint()
+        try calculator.inputDigits(0, 0, 4, 5, 6, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+        XCTAssertEqual(self.getDisplayValue(), -123.004569876543210)
+        
     }
     
     func testSignChangeAfterDecimalPoint() {
@@ -549,6 +573,7 @@ final class CalculatorCoreTests: XCTestCase {
             (100, .divide, -2, expected: -50), //    Negative y
             (-1, .divide, 5, expected: -0.2), //    Negative x
             (1, .divide, 10, expected: 0.1), //    Fractional result
+//            (0.001, .divide, 10, expected: 0.0001),
             // TODO: support fractional operand
 //            (1, .divide, 0.1, expected: 10), //    Fractional y
         ]
