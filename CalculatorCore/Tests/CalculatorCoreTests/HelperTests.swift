@@ -12,7 +12,12 @@ import XCTest
 class HelperTests: XCTestCase {
     func testDoubleToDigits() {
         // TODO: add the missing tests
-        let tests: [(number: Double, integerDigits: [Int], fractionalDigits: [Int])] = []
+        let tests: [(number: Double, integerDigits: [Int], fractionalDigits: [Int])] = [
+            (123, [1,2,3], [0]),
+            (123.0, [1,2,3], [0]),
+            (123.456, [1,2,3], [4,5,6]),
+            (-123.456, [1,2,3], [4,5,6]),
+        ]
         
         for test in tests {
             XCTAssertEqual(test.number.integerDigits, test.integerDigits)
