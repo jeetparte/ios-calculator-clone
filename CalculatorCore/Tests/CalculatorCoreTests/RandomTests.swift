@@ -30,7 +30,7 @@ class RandomTests: XCTestCase {
     @discardableResult private func inputAnyNumber(in range: ClosedRange<Int>? = nil) -> Int {
         let range = range ?? -999_999_999...999_999_999
         let number = Int.random(in: range)
-        calculator.inputNumber(number)
+        calculator.inputNumber(Double(number))
         
         return number
     }

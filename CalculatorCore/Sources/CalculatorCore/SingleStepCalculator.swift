@@ -39,7 +39,13 @@ public class SingleStepCalculator {
         }
     }
     
-    private var currentOperand = \SingleStepCalculator.firstOperand
+    private var currentOperand = \SingleStepCalculator.firstOperand {
+        didSet {
+            guard currentOperand != oldValue else { return }
+            self.hasInsertedDecimal = false
+            self.fractionalPart = ""
+        }
+    }
     private var isDirty = false
     
     /** The value of the operand which is currently most suitable for display.
@@ -111,6 +117,8 @@ public class SingleStepCalculator {
         assert(self.operation == nil)
         // clear the previous result
         firstOperand = 0.0
+        self.hasInsertedDecimal = false
+        self.fractionalPart = ""
     }
     
     /// You may want to track this property if you are interested in modifying the presentation of the calculator's display value
@@ -143,6 +151,7 @@ public class SingleStepCalculator {
         }
     }
         
+    // This applies only to digit input mode. TODO: - document it.
     public func insertDecimalPoint() {
         // clear previous evaluation, if present
         if self.followsEvaluation() {
@@ -161,7 +170,7 @@ public class SingleStepCalculator {
     
     /// - Warning: The calculator offers two numeric input modes: numbers can either be entered digit-by-digit or
     /// as an entire number at once (i.e. as a block). Input modes are offered for flexibility and a chosen mode should be used exclusively across a particular run of using the calculator.
-    public func inputNumber(_ n: Int) {
+    public func inputNumber(_ n: Double) {
         var n = n
         if self.pendingSignChange {
             assert(self[keyPath: currentOperand]?.magnitude == .zero)
