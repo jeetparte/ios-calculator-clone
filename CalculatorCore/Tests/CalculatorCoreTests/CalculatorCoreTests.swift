@@ -1,4 +1,5 @@
 import XCTest
+import RealModule
 @testable import CalculatorCore
 
 final class CalculatorCoreTests: XCTestCase {
@@ -91,7 +92,7 @@ final class CalculatorCoreTests: XCTestCase {
                 if test.expected.isNaN {
                     XCTAssertTrue(actualResult.isNaN)
                 } else {
-                    XCTAssertEqual(actualResult, test.expected)
+                    XCTAssertTrue(actualResult.isApproximatelyEqual(to: test.expected))
                 }
             }
             
@@ -538,6 +539,11 @@ final class CalculatorCoreTests: XCTestCase {
             (-1, .add, 5, expected: 4),
             (0, .add, 1435, expected: 1435),
             (1, .add, 0, expected: 1),
+            // decimal values
+            (0.1, .add, 0.01, expected: 0.11),
+            (0.1, .add, -0.01, expected: 0.09),
+//            (-0.1, .add, 0.0, expected: -0.1),
+//            (123.0, .add, 0.456, expected: 123.456),
         ]
         
         self.execute(tests)
