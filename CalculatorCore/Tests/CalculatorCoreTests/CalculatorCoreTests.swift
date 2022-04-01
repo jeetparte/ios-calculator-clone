@@ -539,11 +539,11 @@ final class CalculatorCoreTests: XCTestCase {
             (-1, .add, 5, expected: 4),
             (0, .add, 1435, expected: 1435),
             (1, .add, 0, expected: 1),
-            // decimal values
+            // decimal inputs
             (0.1, .add, 0.01, expected: 0.11),
             (0.1, .add, -0.01, expected: 0.09),
-//            (-0.1, .add, 0.0, expected: -0.1),
-//            (123.0, .add, 0.456, expected: 123.456),
+            (-0.1, .add, 0.0, expected: -0.1),
+            (123.0, .add, 0.456, expected: 123.456),
         ]
         
         self.execute(tests)
@@ -596,7 +596,12 @@ final class CalculatorCoreTests: XCTestCase {
             (-1, .subtract, -100, expected: 99),
             (-50, .subtract, 40, expected: -90),
             (23, .subtract, 0, expected: 23),
-            (0, .subtract, -9, expected: 9)
+            (0, .subtract, -9, expected: 9),
+            (0, .subtract, 0, expected: 0),
+            // decimal inputs
+            (0.1, .subtract, 0.1, expected: 0),
+            (-0.1, .subtract, 0.1, expected: -0.2),
+            (0, .subtract, 0.0001, expected: -0.0001)
         ]
         
         self.execute(tests)
@@ -611,7 +616,10 @@ final class CalculatorCoreTests: XCTestCase {
             (-4, .multiply, 20, expected: -80),
             (12, .multiply, 0, expected: 0),
             (12, .multiply, 1, expected: 12),
+            // decimal inputs
             (1.5, .multiply, 2, expected: 3),
+            (0.5, .multiply, 0.5, expected: 0.25),
+            (1e-3, .multiply, 1e-4, expected: 1e-7)
         ]
         
         self.execute(tests)
@@ -619,17 +627,20 @@ final class CalculatorCoreTests: XCTestCase {
     
     func testDivision() {
         let tests: [XOperatorYResult]  = [
-            (100, .divide, 5, expected: 20), //    Integer result
-            
-            (5, .divide, 0, expected: .infinity), // divide by zero
+            (100, .divide, 5, expected: 20),
+            (100, .divide, -2, expected: -50),
+            (-1, .divide, 5, expected: -0.2),
+            (1, .divide, 10, expected: 0.1),
+            // Divide by zero
+            (5, .divide, 0, expected: .infinity),
             (-5, .divide, 0, expected: -.infinity),
             (0, .divide, 0, expected: .nan),
-            
-            (100, .divide, -2, expected: -50), //    Negative y
-            (-1, .divide, 5, expected: -0.2), //    Negative x
-            (1, .divide, 10, expected: 0.1), //    Fractional result
+            // Decimal input
             (0.001, .divide, 10, expected: 0.0001),
-            (1, .divide, 0.1, expected: 10), //    Fractional y
+            (1, .divide, 0.1, expected: 10),
+            (0, .divide, 0.1, expected: 0),
+            (1e-10, .divide, 1e-10, expected: 1),
+            (1e10, .divide, 1e10, expected: 1)
         ]
         
         self.execute(tests)
