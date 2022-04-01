@@ -211,7 +211,7 @@ final class CalculatorCoreTests: XCTestCase {
     func testEvaluateIdentity() {
         // If we evaluate (hit '=') when no binary operation has been specified,
         // it should just return the first operand
-        let testNumbers = [1.0, -2]
+        let testNumbers = [1.0, -2, 123.0456, -0.789]
         
         for testNumber in testNumbers {
             self.inputAnyMethod(testNumber)
@@ -230,10 +230,10 @@ final class CalculatorCoreTests: XCTestCase {
         // should evaluate to b.
         
         let tests: [XOperatorY] = [
-            (4, .multiply, 2),
-            (-30, .subtract, 10),
-            (9, .divide, -5),
-            (19, .add, 13),
+            (4.8, .multiply, 2),
+            (-30.15, .subtract, 10),
+            (9, .divide, -5.877),
+            (19, .add, 0.0000000013),
         ]
         
         for test in tests {
@@ -244,7 +244,8 @@ final class CalculatorCoreTests: XCTestCase {
             
             self.inputAnyMethod(test.b)
             let result2 = calculator.evaluate()
-            XCTAssertEqual(result2, Double(test.b))
+            XCTAssertTrue(result2.isApproximatelyEqual(to: test.b),
+                          "Actual: \(result2), Expected: \(test.b)")
             
             self.newCalculator()
         }
