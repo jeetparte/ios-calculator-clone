@@ -174,7 +174,7 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(self.getDisplayValue(), 0.1)
     }
     
-    func testNegativeEntry() throws {
+    func testNegativeEntryDigits() throws {
         // if we start at a negative number e.g. -0,
         // successively inputting digits should give us the same result
         // as if we'd started with a positive number,
