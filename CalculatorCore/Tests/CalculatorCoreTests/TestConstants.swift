@@ -8,7 +8,7 @@
 import Foundation
 import CalculatorCore
 
-typealias XOperatorY = (a: Double, op: SingleStepCalculator.BinaryOperation, b: Double)
+typealias XOperatorY = (a: String, op: SingleStepCalculator.BinaryOperation, b: String)
 typealias Operator = SingleStepCalculator.BinaryOperation
-typealias XOperatorYResult = (a: Double, op: SingleStepCalculator.BinaryOperation, b: Double, expected: Double)
+typealias XOperatorYResult = (a: String, op: SingleStepCalculator.BinaryOperation, b: String, expected: Double)
 typealias AssertBlock = (_ actualResult: Double, _ expectedResult: Double) -> Void

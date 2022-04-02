@@ -45,31 +45,27 @@ final class CalculatorCoreTests: XCTestCase {
         case number = 2
     }
     /// Inputs in either of the accepted ways: digit-by-digit or as a block.
-    /// - Parameter ignoreEmptyFractionalDigits: If `true`,  a `Double` such as 12.0 will be input without the decimal point and trailing zero.
-    private func inputAnyMethod(_ number: Double, ignoreEmptyFractionalDigits: Bool = true) {
+    private func inputAnyMethod(_ number: String) {
         let method = InputMethod(rawValue: Self.which) ?? .digit
-        self.input(number, inputMethod: method, ignoreEmptyFractionalDigits: ignoreEmptyFractionalDigits)
+        self.input(number, inputMethod: method)
     }
     
-    private func input(_ number: Double, inputMethod method: InputMethod, ignoreEmptyFractionalDigits: Bool) {
+    private func input(_ number: String, inputMethod method: InputMethod) {
+        let numberDouble = Double(number)!
         switch method {
         case .digit:
             try! inputDigits(number.integerDigits)
             let fractionalDigits = number.fractionalDigits
-            let isFractionalEmpty =
-            fractionalDigits.isEmpty || (fractionalDigits.count == 1 && fractionalDigits.first! == .zero)
-            
-            let skipFractionalDigits = ignoreEmptyFractionalDigits && isFractionalEmpty
-            if !skipFractionalDigits {
+            if !fractionalDigits.isEmpty {
                 calculator.insertDecimalPoint()
                 try! inputDigits(number.fractionalDigits)
             }
             
-            if number.sign == .minus {
+            if numberDouble.sign == .minus {
                 calculator.inputOperation(.signChange)
             }
         case .number:
-            calculator.inputNumber(number)
+            calculator.inputNumber(numberDouble)
         }
         
         func inputDigits(_ digits: [Int]) throws {
@@ -106,14 +102,13 @@ final class CalculatorCoreTests: XCTestCase {
     //MARK: - Test utility methods
     func testInputMethods() {
         // Test that different input methods are identical
-        let numbers: [Double] = [12, -23, 456, 9999, 0, -9999, 6, 456,
-                                 12.0, -23.22, 456.777, 9999.11, 0.0, 0.01, -9999.456, 6.5, 456.123]
-        let ignoreOption = Self.which.isEven
+        let numbers: [String] = ["12", "-23", "456", "9999", "0", "-9999", "6", "456",
+                                 "12.0", "-23.22", "456.777", "9999.11", "0.0", "0.01", "-9999.456", "6.5", "456.123"]
         for number in numbers {
-            self.input(number, inputMethod: .digit, ignoreEmptyFractionalDigits: ignoreOption)
+            self.input(number, inputMethod: .digit)
             let digitInput = getDisplayValue()
             self.newCalculator()
-            self.input(number, inputMethod: .number, ignoreEmptyFractionalDigits: ignoreOption)
+            self.input(number, inputMethod: .number)
             let numberInput = getDisplayValue()
             XCTAssertEqual(digitInput, numberInput)
             self.newCalculator()
@@ -123,14 +118,47 @@ final class CalculatorCoreTests: XCTestCase {
     // MARK: - Tests
     
     // MARK: Input
+    
+    func testStringToDouble() {
+        // Having input specified as Strings is easier (so we can extract the digits),
+        // but validating output requires Doubles.
+        // When expected output equals input, we'd like to rely on this conversion to avoid specifying the number in both formats.
+        let tests: [(string: String, expected: Double)] = [
+            ("12", 12),
+            ("-23", -23),
+            ("456", 456),
+            ("9999", 9999),
+            ("0", 0),
+            ("-9999", -9999),
+            ("6", 6),
+            ("456", 456),
+            ("12.0", 12.0),
+            ("-23.22", -23.22),
+            ("456.777", 456.777),
+            ("9999.11", 9999.11),
+            ("0.0", 0.0),
+            ("0.01", 0.01),
+            ("-9999.456", -9999.456),
+            ("6.5", 6.5),
+            ("456.123", 456.123),
+            ("-123456789.012345678", -123456789.012345678),
+            ("0.0000000013", 0.0000000013),
+            ("100000000000000000000", 1e20)
+        ]
+        
+        for test in tests {
+            XCTAssertEqual(Double(test.string), test.expected)
+        }
+    }
+    
     func testNumberInput() {
         // Numbers entered update the display value and evaluate to themselves.
-        let numbers: [Double] = [0, 1, 12, -12, 345, 5, -67, 890, 123_456_7890]
-        let decimalNumbers = [0.25, -1.75, 7.99, 123.546, 123_456_789.012_345_678]
+        let numbers: [String] = ["0", "1", "12", "-12", "345", "5", "-67", "890", "123", "456", "7890"]
+        let decimalNumbers = ["0.25", "-1.75", "7.99", "123.546", "123", "456", "789.012", "345", "678"]
         for number in (numbers + decimalNumbers) {
             self.inputAnyMethod(number)
-            XCTAssertEqual(calculator.displayValue!, Double(number))
-            XCTAssertEqual(calculator.evaluate(), Double(number))
+            XCTAssertEqual(calculator.displayValue!, Double(number)!)
+            XCTAssertEqual(calculator.evaluate(), Double(number)!)
         }
     }
     
@@ -172,7 +200,7 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     func testDecimalInsertionAfterEvaluation() throws {
-        self.inputAnyMethod(-12.34)
+        self.inputAnyMethod("-12.34")
         calculator.evaluate()
         calculator.insertDecimalPoint()
         try calculator.inputDigit(1)
@@ -188,10 +216,10 @@ final class CalculatorCoreTests: XCTestCase {
         // e.g. if inputs: 0,1,2,3 --> 123,
         // then inputs: -0,1,2,3 --> -123
         
-        let startingNumbers: [Double] = [0, 40, 1]
+        let startingNumbers: [String] = ["0", "40", "1"]
         
         for startingNumber in startingNumbers {
-            calculator.inputNumber(startingNumber)
+            calculator.inputNumber(Double(startingNumber)!)
             try calculator.inputDigits(1,2,3)
             let positiveResult = calculator.displayValue!
             
@@ -211,11 +239,11 @@ final class CalculatorCoreTests: XCTestCase {
     func testEvaluateIdentity() {
         // If we evaluate (hit '=') when no binary operation has been specified,
         // it should just return the first operand
-        let testNumbers = [1.0, -2, 123.0456, -0.789]
+        let testNumbers = ["1.0", "-2", "123.0456", "-0.789"]
         
         for testNumber in testNumbers {
             self.inputAnyMethod(testNumber)
-            XCTAssertEqual(testNumber, calculator.evaluate())
+            XCTAssertEqual(Double(testNumber)!, calculator.evaluate())
         }
     }
     
@@ -230,10 +258,10 @@ final class CalculatorCoreTests: XCTestCase {
         // should evaluate to b.
         
         let tests: [XOperatorY] = [
-            (4.8, .multiply, 2),
-            (-30.15, .subtract, 10),
-            (9, .divide, -5.877),
-            (19, .add, 0.0000000013),
+            ("4.8", .multiply, "2"),
+            ("-30.15", .subtract, "10"),
+            ("9", .divide, "-5.877"),
+            ("19", .add, "0.0000000013"),
         ]
         
         for test in tests {
@@ -244,8 +272,9 @@ final class CalculatorCoreTests: XCTestCase {
             
             self.inputAnyMethod(test.b)
             let result2 = calculator.evaluate()
-            XCTAssertTrue(result2.isApproximatelyEqual(to: test.b),
-                          "Actual: \(result2), Expected: \(test.b)")
+            let expected = Double(test.b)!
+            XCTAssertTrue(result2.isApproximatelyEqual(to: expected),
+                          "Actual: \(result2), Expected: \(expected)")
             
             self.newCalculator()
         }
@@ -281,11 +310,11 @@ final class CalculatorCoreTests: XCTestCase {
         // If an operator is entered, after an evalutable expression has been entered,
         // that expression is evaluated and made the first operand for the operator just entered.
         
-        let tests: [(expression: XOperatorY, operator: Operator, rhs: Double, finalResult: Double)] = [
-            ((2, .multiply, 3), .add, 1, finalResult: 7),
-            ((5, .subtract, 2), .multiply, 3, finalResult: 9),
-            ((10, .add, -3), .multiply, 7, finalResult: 49),
-            ((144, .divide, 12), .divide, 3, finalResult: 4),
+        let tests: [(expression: XOperatorY, operator: Operator, rhs: String, finalResult: Double)] = [
+            (("2", .multiply, "3"), .add, "1", finalResult: 7),
+            (("5", .subtract, "2"), .multiply, "3", finalResult: 9),
+            (("10", .add, "-3"), .multiply, "7", finalResult: 49),
+            (("144", .divide, "12"), .divide, "3", finalResult: 4),
         ]
         
         for test in tests {
@@ -305,10 +334,10 @@ final class CalculatorCoreTests: XCTestCase {
         // If an operator is entered just after the previous one,
         // it overrides it.
         
-        let tests: [(a: Double, op1: Operator, op2: Operator, b: Double, result: Double)] = [
-            (2, .multiply, .subtract, 2, result: 0),
-            (2, .subtract, .multiply, 2, result: 4),
-            (10, .add, .divide, 2, result: 5),
+        let tests: [(a: String, op1: Operator, op2: Operator, b: String, result: Double)] = [
+            ("2", .multiply, .subtract, "2", result: 0),
+            ("2", .subtract, .multiply, "2", result: 4),
+            ("10", .add, .divide, "2", result: 5),
         ]
         
         for test in tests {
@@ -331,16 +360,16 @@ final class CalculatorCoreTests: XCTestCase {
         // The display value on the calculator must change as expected after every input.
         
         let tests: [XOperatorYResult] = [
-            (123, .add, -23, expected: 100),
-            (-23, .multiply, 2, expected: -46),
-            (0, .subtract, -5, expected: 5),
-            (10, .divide, -2, expected: -5)
+            ("123", .add, "-23", expected: 100),
+            ("-23", .multiply, "2", expected: -46),
+            ("0", .subtract, "-5", expected: 5),
+            ("10", .divide, "-2", expected: -5)
         ]
         
         for test in tests {
             let a = Double(test.a)
             let b = Double(test.b)
-            let result = Double(test.expected)
+            let result = test.expected
             
             // on initial input, display value = first operand
             self.inputAnyMethod(test.a)
@@ -383,14 +412,14 @@ final class CalculatorCoreTests: XCTestCase {
         // signChange(a) -> -a
         // signChange(-a) -> a
         
-        let numbers: [Double] = [0, 1, 10, 123, -123]
+        let numbers: [String] = ["0", "1", "10", "123", "-123"]
         // TODO: check floating point cases - +inf, -inf, pi
         
         for number in numbers {
             self.inputAnyMethod(number)
             calculator.inputOperation(.signChange)
             let negativeValue = getDisplayValue()
-            XCTAssertEqual(Double(-number), negativeValue)
+            XCTAssertEqual(-Double(number)!, negativeValue)
             
             calculator.inputOperation(.signChange)
             let postiveValue = getDisplayValue()
@@ -434,13 +463,13 @@ final class CalculatorCoreTests: XCTestCase {
         // it should apply to it correctly.
         
         // 'signChange a' or 'signChange a =' should equal -a
-        let tests: [Double] = [1, 0, -0, -999]
+        let tests: [String] = ["1", "0", "-0", "-999"]
         
         for a in tests {
             calculator.inputOperation(.signChange)
             self.inputAnyMethod(a)
-            XCTAssertEqual(calculator.displayValue, -Double(a))
-            XCTAssertEqual(calculator.evaluate(), -Double(a))
+            XCTAssertEqual(calculator.displayValue, -Double(a)!)
+            XCTAssertEqual(calculator.evaluate(), -Double(a)!)
             
             self.newCalculator()
         }
@@ -451,13 +480,13 @@ final class CalculatorCoreTests: XCTestCase {
         // it should apply to it correctly.
         
         // 'a signChange' or 'a signChange =' should equal -a
-        let tests: [Double] = [1, 0, -0, -999]
+        let tests: [String] = ["1", "0", "-0", "-999"]
         
         for a in tests {
             self.inputAnyMethod(a)
             calculator.inputOperation(.signChange)
-            XCTAssertEqual(calculator.displayValue, -Double(a))
-            XCTAssertEqual(calculator.evaluate(), -Double(a))
+            XCTAssertEqual(calculator.displayValue, -Double(a)!)
+            XCTAssertEqual(calculator.evaluate(), -Double(a)!)
             
             self.newCalculator()
         }
@@ -471,10 +500,10 @@ final class CalculatorCoreTests: XCTestCase {
         // a, op, signChange, b = a op signChange(b) ≠ signChange(a) op b
         
         // 1 + signChange 3 = 1 + (-3) ≠ (-1) + 3
-        self.inputAnyMethod(1)
+        self.inputAnyMethod("1")
         calculator.inputOperation(.add)
         calculator.inputOperation(.signChange)
-        self.inputAnyMethod(3)
+        self.inputAnyMethod("3")
         // 2nd operand should now display as -3
         XCTAssertEqual(calculator.displayValue!, -3.0)
         let result = calculator.evaluate()
@@ -490,9 +519,9 @@ final class CalculatorCoreTests: XCTestCase {
         // i.e. 'a op b signChange' = 'a op -b'
         
         let tests: [XOperatorY] = [
-            (1, .add, 10), (1, .subtract, 10), (1, .multiply, 10), (1, .divide, 10), // ...
-            (2, .add, 0), (2, .subtract, 0), (2, .multiply, 0), (2, .divide, 0), // ...
-            (3, .add, -8), (3, .subtract, -8), (3, .multiply, -8), (3, .divide, -8), // ...
+            ("1", .add, "10"), ("1", .subtract, "10"), ("1", .multiply, "10"), ("1", .divide, "10"), // ...
+            ("2", .add, "0"), ("2", .subtract, "0"), ("2", .multiply, "0"), ("2", .divide, "0"), // ...
+            ("3", .add, "-8"), ("3", .subtract, "-8"), ("3", .multiply, "-8"), ("3", .divide, "-8"), // ...
         ]
         
         for test in tests {
@@ -500,7 +529,7 @@ final class CalculatorCoreTests: XCTestCase {
             calculator.inputOperation(test.op)
             self.inputAnyMethod(test.b)
             calculator.inputOperation(.signChange)
-            XCTAssertEqual(-Double(test.b), calculator.displayValue!)
+            XCTAssertEqual(-Double(test.b)!, calculator.displayValue!)
             
             self.newCalculator()
         }
@@ -512,16 +541,16 @@ final class CalculatorCoreTests: XCTestCase {
         
         // First, exercise the calculator
         // expression: '12 * 3 / 2 + signChange 7 * 5'
-        self.inputAnyMethod(12)
+        self.inputAnyMethod("12")
         calculator.inputOperation(.multiply)
-        self.inputAnyMethod(3)
+        self.inputAnyMethod("3")
         calculator.inputOperation(.divide)
-        self.inputAnyMethod(2)
+        self.inputAnyMethod("2")
         calculator.inputOperation(.add)
         calculator.inputOperation(.signChange)
-        self.inputAnyMethod(7)
+        self.inputAnyMethod("7")
         calculator.inputOperation(.multiply)
-        self.inputAnyMethod(5)
+        self.inputAnyMethod("5")
         
         // set up a comparison
         let newCalculator = SingleStepCalculator()
@@ -535,16 +564,16 @@ final class CalculatorCoreTests: XCTestCase {
     
     func testAddition() throws {
         let tests: [XOperatorYResult] = [
-            (1, .add, 5, expected: 6),
-            (357, .add, -5, expected: 352),
-            (-1, .add, 5, expected: 4),
-            (0, .add, 1435, expected: 1435),
-            (1, .add, 0, expected: 1),
+            ("1", .add, "5", expected: 6),
+            ("357", .add, "-5", expected: 352),
+            ("-1", .add, "5", expected: 4),
+            ("0", .add, "1435", expected: 1435),
+            ("1", .add, "0", expected: 1),
             // decimal inputs
-            (0.1, .add, 0.01, expected: 0.11),
-            (0.1, .add, -0.01, expected: 0.09),
-            (-0.1, .add, 0.0, expected: -0.1),
-            (123.0, .add, 0.456, expected: 123.456),
+            ("0.1", .add, "0.01", expected: 0.11),
+            ("0.1", .add, "-0.01", expected: 0.09),
+            ("-0.1", .add, "0.0", expected: -0.1),
+            ("123.0", .add, "0.456", expected: 123.456),
         ]
         
         self.execute(tests)
@@ -592,17 +621,17 @@ final class CalculatorCoreTests: XCTestCase {
     
     func testSubtraction() throws {
         let tests: [XOperatorYResult] = [
-            (1, .subtract, 3, expected: -2),
-            (1, .subtract, -100, expected: 101),
-            (-1, .subtract, -100, expected: 99),
-            (-50, .subtract, 40, expected: -90),
-            (23, .subtract, 0, expected: 23),
-            (0, .subtract, -9, expected: 9),
-            (0, .subtract, 0, expected: 0),
+            ("1", .subtract, "3", expected: -2),
+            ("1", .subtract, "-100", expected: 101),
+            ("-1", .subtract, "-100", expected: 99),
+            ("-50", .subtract, "40", expected: -90),
+            ("23", .subtract, "0", expected: 23),
+            ("0", .subtract, "-9", expected: 9),
+            ("0", .subtract, "0", expected: 0),
             // decimal inputs
-            (0.1, .subtract, 0.1, expected: 0),
-            (-0.1, .subtract, 0.1, expected: -0.2),
-            (0, .subtract, 0.0001, expected: -0.0001)
+            ("0.1", .subtract, "0.1", expected: 0),
+            ("-0.1", .subtract, "0.1", expected: -0.2),
+            ("0", .subtract, "0.0001", expected: -0.0001)
         ]
         
         self.execute(tests)
@@ -610,17 +639,17 @@ final class CalculatorCoreTests: XCTestCase {
         
     func testMultiplication() {
         let tests: [XOperatorYResult] = [
-            (12, .multiply, 12, expected: 144),
-            (10, .multiply, -9, expected: -90),
-            (-9, .multiply, 10, expected: -90),
-            (-4, .multiply, -4, expected: 16),
-            (-4, .multiply, 20, expected: -80),
-            (12, .multiply, 0, expected: 0),
-            (12, .multiply, 1, expected: 12),
+            ("12", .multiply, "12", expected: 144),
+            ("10", .multiply, "-9", expected: -90),
+            ("-9", .multiply, "10", expected: -90),
+            ("-4", .multiply, "-4", expected: 16),
+            ("-4", .multiply, "20", expected: -80),
+            ("12", .multiply, "0", expected: 0),
+            ("12", .multiply, "1", expected: 12),
             // decimal inputs
-            (1.5, .multiply, 2, expected: 3),
-            (0.5, .multiply, 0.5, expected: 0.25),
-            (1e-3, .multiply, 1e-4, expected: 1e-7)
+            ("1.5", .multiply, "2", expected: 3),
+            ("0.5", .multiply, "0.5", expected: 0.25),
+            ("0.001", .multiply, "0.0001", expected: 1e-7)
         ]
         
         self.execute(tests)
@@ -628,20 +657,20 @@ final class CalculatorCoreTests: XCTestCase {
     
     func testDivision() {
         let tests: [XOperatorYResult]  = [
-            (100, .divide, 5, expected: 20),
-            (100, .divide, -2, expected: -50),
-            (-1, .divide, 5, expected: -0.2),
-            (1, .divide, 10, expected: 0.1),
+            ("100", .divide, "5", expected: 20),
+            ("100", .divide, "-2", expected: -50),
+            ("-1", .divide, "5", expected: -0.2),
+            ("1", .divide, "10", expected: 0.1),
             // Divide by zero
-            (5, .divide, 0, expected: .infinity),
-            (-5, .divide, 0, expected: -.infinity),
-            (0, .divide, 0, expected: .nan),
+            ("5", .divide, "0", expected: .infinity),
+            ("-5", .divide, "0", expected: -.infinity),
+            ("0", .divide, "0", expected: .nan),
             // Decimal input
-            (0.001, .divide, 10, expected: 0.0001),
-            (1, .divide, 0.1, expected: 10),
-            (0, .divide, 0.1, expected: 0),
-            (1e-10, .divide, 1e-10, expected: 1),
-            (1e10, .divide, 1e10, expected: 1)
+            ("0.001", .divide, "10", expected: 0.0001),
+            ("1", .divide, "0.1", expected: 10),
+            ("0", .divide, "0.1", expected: 0),
+            ("0.0000000001", .divide, "0.0000000001", expected: 1),
+            ("1000000000", .divide, "1000000000", expected: 1)
         ]
         
         self.execute(tests)
