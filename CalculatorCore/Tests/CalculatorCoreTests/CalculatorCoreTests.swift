@@ -129,6 +129,36 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
+    func testNegativeEntryDigits() throws {
+        // if we start at a negative number e.g. -0,
+        // successively inputting digits should give us the same result
+        // as if we'd started with a positive number,
+        // but with a negative sign instead
+        
+        // e.g. if inputs: 0,1,2,3 --> 123,
+        // then inputs: -0,1,2,3 --> -123
+        
+        let startingNumbers: [String] = ["0", "40", "1"]
+        
+        for startingNumber in startingNumbers {
+            calculator.inputNumber(Double(startingNumber)!)
+            try calculator.inputDigits(1,2,3)
+            let positiveResult = calculator.displayValue!
+            
+            // new calculator
+            self.newCalculator()
+            
+            self.inputAnyMethod(startingNumber)
+            calculator.inputOperation(.signChange)
+            try calculator.inputDigits(1,2,3)
+            let negativeResult = calculator.displayValue!
+            
+            XCTAssertEqual(-positiveResult, negativeResult)
+        }
+    }
+    
+    // MARK: - Decimal insertion
+    
     func testDecimalInsertionDigits() throws {
         // If numbers are entered as digits then
         // the sequence of operations
@@ -194,34 +224,6 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.displayValue, 0.125)
         
         XCTAssertEqual(calculator.evaluate(), 0.625)
-    }
-    
-    func testNegativeEntryDigits() throws {
-        // if we start at a negative number e.g. -0,
-        // successively inputting digits should give us the same result
-        // as if we'd started with a positive number,
-        // but with a negative sign instead
-        
-        // e.g. if inputs: 0,1,2,3 --> 123,
-        // then inputs: -0,1,2,3 --> -123
-        
-        let startingNumbers: [String] = ["0", "40", "1"]
-        
-        for startingNumber in startingNumbers {
-            calculator.inputNumber(Double(startingNumber)!)
-            try calculator.inputDigits(1,2,3)
-            let positiveResult = calculator.displayValue!
-            
-            // new calculator
-            self.newCalculator()
-            
-            self.inputAnyMethod(startingNumber)
-            calculator.inputOperation(.signChange)
-            try calculator.inputDigits(1,2,3)
-            let negativeResult = calculator.displayValue!
-            
-            XCTAssertEqual(-positiveResult, negativeResult)
-        }
     }
 
     // MARK: Evaluation
