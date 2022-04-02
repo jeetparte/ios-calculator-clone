@@ -103,7 +103,7 @@ class RandomTests: XCTestCase {
         XCTAssertEqual(-Double(b), calculator.displayValue!)
     }
     
-    func testSignChangeAfterBinaryOperation() throws {
+    func testSignChangeBeforeSecondOperand() throws {
         // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
         // the sign change should apply on the second operand, not the first.
         //
