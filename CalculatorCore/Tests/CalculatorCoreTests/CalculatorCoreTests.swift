@@ -247,7 +247,7 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
-    func testInputAfterEvaluationDigits() throws {
+    func testInputAfterEvaluation() throws {
         // Any input after evaluation should be considered fresh input
         // and should override the result of the evaluation.
                 
@@ -262,26 +262,23 @@ final class CalculatorCoreTests: XCTestCase {
         }
         
         // Add new input and check if evaluation interfered with it
-        let successiveInputs = [9, 8, 6, 6 ,5, 1, 2, 3]
-        var expectedResult: Double? = nil
-        for input in successiveInputs {
-            try calculator.inputDigit(input)
-        
-            expectedResult = (expectedResult ?? 0) * 10 + Double(input)
-            XCTAssertEqual(calculator.displayValue, expectedResult)
+        let inputs = ["9", "1.8", "-7.205", "9866", "98665123"]
+        for input in inputs {
+            self.inputAnyMethod(input)
+            let expectedResult = Double(input)!
+            XCTAssertEqual(expectedResult, calculator.evaluate())
         }
-        XCTAssertEqual(expectedResult, calculator.evaluate())
     }
     
     func testImplicitEvaluation() {
         // If an operator is entered, after an evalutable expression has been entered,
         // that expression is evaluated and made the first operand for the operator just entered.
         
-        let tests: [(expression: XOperatorY, operator: Operator, rhs: String, finalResult: Double)] = [
-            (("2", .multiply, "3"), .add, "1", finalResult: 7),
-            (("5", .subtract, "2"), .multiply, "3", finalResult: 9),
-            (("10", .add, "-3"), .multiply, "7", finalResult: 49),
-            (("144", .divide, "12"), .divide, "3", finalResult: 4),
+        let tests: [(expression: XOperatorY, operator: Operator, rhs: String, expected: Double)] = [
+            (("2", .multiply, "3"), .add, "1", expected: 7),
+            (("5", .subtract, "2.5"), .multiply, "3", expected: 7.5),
+            (("10.5", .add, "-3.5"), .multiply, "7", expected: 49),
+            (("144.36", .divide, "12"), .divide, "3", expected: 4.01),
         ]
         
         for test in tests {
@@ -293,7 +290,8 @@ final class CalculatorCoreTests: XCTestCase {
             calculator.inputOperation(test.operator)
             self.inputAnyMethod(test.rhs)
             
-            XCTAssertEqual(calculator.evaluate(), test.finalResult)
+            let actual = calculator.evaluate()
+            XCTAssertTrue(actual.isApproximatelyEqual(to: test.expected))
         }
     }
     
@@ -301,10 +299,11 @@ final class CalculatorCoreTests: XCTestCase {
         // If an operator is entered just after the previous one,
         // it overrides it.
         
-        let tests: [(a: String, op1: Operator, op2: Operator, b: String, result: Double)] = [
-            ("2", .multiply, .subtract, "2", result: 0),
-            ("2", .subtract, .multiply, "2", result: 4),
-            ("10", .add, .divide, "2", result: 5),
+        let tests: [(a: String, op1: Operator, op2: Operator, b: String, expected: Double)] = [
+            ("2", .multiply, .subtract, "2", expected: 0),
+            ("2", .subtract, .multiply, "2", expected: 4),
+            ("10", .add, .divide, "2", expected: 5),
+            ("10.5", .add, .divide, "2", expected: 5.25),
         ]
         
         for test in tests {
@@ -312,7 +311,8 @@ final class CalculatorCoreTests: XCTestCase {
             calculator.inputOperation(test.op1)
             calculator.inputOperation(test.op2)
             self.inputAnyMethod(test.b)
-            XCTAssertEqual(calculator.evaluate(), test.result)
+            let actual = calculator.evaluate()
+            XCTAssertTrue(actual.isApproximatelyEqual(to: test.expected))
         }
     }
     
@@ -329,8 +329,8 @@ final class CalculatorCoreTests: XCTestCase {
         let tests: [XOperatorYResult] = [
             ("123", .add, "-23", expected: 100),
             ("-23", .multiply, "2", expected: -46),
-            ("0", .subtract, "-5", expected: 5),
-            ("10", .divide, "-2", expected: -5)
+            ("0", .subtract, "-5.001", expected: 5.001),
+            ("10.2", .divide, "-2", expected: -5.1)
         ]
         
         for test in tests {
@@ -349,7 +349,7 @@ final class CalculatorCoreTests: XCTestCase {
             XCTAssertEqual(calculator.displayValue!, b)
             // after evaluation, display value = operator(1st operand, 2nd operand)
             calculator.evaluate()
-            XCTAssertEqual(calculator.displayValue!, result)
+            XCTAssertTrue(calculator.displayValue!.isApproximatelyEqual(to: result))
         }
     }
     
@@ -379,7 +379,7 @@ final class CalculatorCoreTests: XCTestCase {
         // signChange(a) -> -a
         // signChange(-a) -> a
         
-        let numbers: [String] = ["0", "1", "10", "123", "-123"]
+        let numbers: [String] = ["0", "1", "10", "123", "-123", "1.23", "-12.3"]
         // TODO: check floating point cases - +inf, -inf, pi
         
         for number in numbers {
@@ -430,7 +430,7 @@ final class CalculatorCoreTests: XCTestCase {
         // it should apply to it correctly.
         
         // 'signChange a' or 'signChange a =' should equal -a
-        let tests: [String] = ["1", "0", "-0", "-999"]
+        let tests: [String] = ["1", "0", "-0", "-999", "123.456", "-1.2"]
         
         for a in tests {
             calculator.inputOperation(.signChange)
@@ -447,7 +447,7 @@ final class CalculatorCoreTests: XCTestCase {
         // it should apply to it correctly.
         
         // 'a signChange' or 'a signChange =' should equal -a
-        let tests: [String] = ["1", "0", "-0", "-999"]
+        let tests: [String] = ["1", "0", "-0", "-999", "123.456", "-1.2"]
         
         for a in tests {
             self.inputAnyMethod(a)
@@ -466,15 +466,20 @@ final class CalculatorCoreTests: XCTestCase {
         //
         // a, op, signChange, b = a op signChange(b) ≠ signChange(a) op b
         
-        // 1 + signChange 3 = 1 + (-3) ≠ (-1) + 3
-        self.inputAnyMethod("1")
-        calculator.inputOperation(.add)
-        calculator.inputOperation(.signChange)
-        self.inputAnyMethod("3")
-        // 2nd operand should now display as -3
-        XCTAssertEqual(calculator.displayValue!, -3.0)
-        let result = calculator.evaluate()
-        XCTAssertEqual(result, -2.0)
+        let tests: [XOperatorYResult] = [
+            ("1", .add, "3", -2),
+            ("1.5", .multiply, "3", -4.5),
+            ("2.2", .divide, "1.1", -2),
+        ]
+        
+        for test in tests {
+            self.inputAnyMethod(test.a)
+            calculator.inputOperation(test.op)
+            calculator.inputOperation(.signChange)
+            self.inputAnyMethod(test.b)
+            XCTAssertEqual(calculator.displayValue!, -Double(test.b)!)
+            XCTAssertEqual(calculator.evaluate(), test.expected)
+        }
     }
     
     func testSignChangeAfterSecondOperand() throws {
@@ -486,9 +491,9 @@ final class CalculatorCoreTests: XCTestCase {
         // i.e. 'a op b signChange' = 'a op -b'
         
         let tests: [XOperatorY] = [
-            ("1", .add, "10"), ("1", .subtract, "10"), ("1", .multiply, "10"), ("1", .divide, "10"), // ...
-            ("2", .add, "0"), ("2", .subtract, "0"), ("2", .multiply, "0"), ("2", .divide, "0"), // ...
-            ("3", .add, "-8"), ("3", .subtract, "-8"), ("3", .multiply, "-8"), ("3", .divide, "-8"), // ...
+            ("1", .add, "10.75"), ("1", .subtract, "10"), ("1", .multiply, "10"), ("1", .divide, "10"), // ...
+            ("2", .add, "0"), ("2", .subtract, "0.09"), ("2", .multiply, "0"), ("2", .divide, "0"), // ...
+            ("3", .add, "-8"), ("3", .subtract, "-8"), ("3", .multiply, "-8.17"), ("3", .divide, "-8.22"), // ...
         ]
         
         for test in tests {
@@ -507,17 +512,17 @@ final class CalculatorCoreTests: XCTestCase {
         // An all-clear operation should reset the calculator to its initial state.
         
         // First, exercise the calculator
-        // expression: '12 * 3 / 2 + signChange 7 * 5'
+        // expression: '12 * 3 / 2.1 + signChange 7.25 * 5.33'
         self.inputAnyMethod("12")
         calculator.inputOperation(.multiply)
         self.inputAnyMethod("3")
         calculator.inputOperation(.divide)
-        self.inputAnyMethod("2")
+        self.inputAnyMethod("2.1")
         calculator.inputOperation(.add)
         calculator.inputOperation(.signChange)
-        self.inputAnyMethod("7")
+        self.inputAnyMethod("7.25")
         calculator.inputOperation(.multiply)
-        self.inputAnyMethod("5")
+        self.inputAnyMethod("5.33")
         
         // set up a comparison
         let newCalculator = SingleStepCalculator()
