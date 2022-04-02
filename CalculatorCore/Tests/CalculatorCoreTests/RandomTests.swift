@@ -112,7 +112,9 @@ class RandomTests: XCTestCase {
         let a = try self.anyInput()
         self.inputAnyBinaryOperation()
         calculator.inputOperation(.signChange)
-        XCTAssertNotEqual(calculator.displayValue!, -Double(a))
+        if a != 0 {
+            XCTAssertNotEqual(calculator.displayValue!, -Double(a))
+        }
         let b = try self.anyInput()
         XCTAssertEqual(calculator.displayValue!, -Double(b))
     }
