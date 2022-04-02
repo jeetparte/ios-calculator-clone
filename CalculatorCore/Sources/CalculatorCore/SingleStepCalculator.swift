@@ -16,8 +16,7 @@ public class SingleStepCalculator {
             precondition(firstOperand != nil, "Error: This property must not be set to nil.")
             self.currentOperand = \.firstOperand
             
-            self.noActionsSinceLastEvaluation = false
-            self.isDirty = true
+            self.recordInput()
             
             /* TODO: - We may want to may want allow clients to track changes to the hasInsertedDecimal property so that they can modify the presentation of the calculator's display value to show the decimal point when it is inserted.
              */
@@ -29,16 +28,14 @@ public class SingleStepCalculator {
             if secondOperand != nil {
                 self.currentOperand = \.secondOperand
             }
-            self.noActionsSinceLastEvaluation = false
-            self.isDirty = true
+            self.recordInput()
         }
     }
     
     // TODO: - rename to binaryOperation?
     public var operation: BinaryOperation? {
         didSet {
-            self.noActionsSinceLastEvaluation = false
-            self.isDirty = true
+            self.recordInput()
         }
     }
     
@@ -66,8 +63,8 @@ public class SingleStepCalculator {
         
         // Any input after evaluation should be considered fresh input
         // and should override the result of the evaluation
-        if self.followsEvaluation() {
-            self.clearEvaluationResult()
+        if self.clearOnNextInput {
+            self.clearCurrent()
         }
         
         // when there's a queued operation, we redirect input to second operand
@@ -95,6 +92,11 @@ public class SingleStepCalculator {
         }
     }
     
+    private func recordInput() {
+        self.clearOnNextInput = false
+        self.isDirty = true
+    }
+    
     private func followsBinaryOperator() -> Bool {
         // true if a binary operation has been entered
         // but the input of the second operand has not begun
@@ -105,22 +107,15 @@ public class SingleStepCalculator {
         self.secondOperand = CalculatorNumber(0.0) // this sets it as the current operand as well
     }
     
-    private func followsEvaluation() -> Bool {
-        return self.noActionsSinceLastEvaluation
-    }
-    
-    private func clearEvaluationResult() {
-        assert(self.currentOperand == \.firstOperand)
-        assert(self.operation == nil)
-        // clear the previous result
-        firstOperand.reset()
+    private func clearCurrent() {
+        self[keyPath: currentOperand]?.reset()
     }
 
     // This applies only to digit input mode. TODO: - document it.
     public func insertDecimalPoint() {
         // clear previous evaluation, if present
-        if self.followsEvaluation() {
-            self.clearEvaluationResult()
+        if self.clearOnNextInput {
+            self.clearCurrent()
         }
         
         // initialize operand, if required
@@ -169,32 +164,55 @@ public class SingleStepCalculator {
     /// For number input, we need to track any sign changes and apply them at the time of input.
     private var pendingSignChange = false
     public func inputOperation(_ op: UnaryOperation) {
-        if op == .signChange {
-            
-            // If sign change is entered before first operand,
-            // queue it for later.
-            if !self.isDirty {
-                self.pendingSignChange = true
-            }
-            
-            // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
-            // the sign change should apply on the (to-be-entered) second operand, not the first.
-            if self.followsBinaryOperator() {
-                assert(self.isDirty)
-                self.redirectInputToSecondOperand()
-                self.pendingSignChange = true
-            }
-            
-            self[keyPath: currentOperand]?.negate()
+        switch op {
+        case .signChange:
+            self.doSignChange()
+        case .percentage:
+            self.doPercentage()
         }
     }
     
-    /// `true` if the last interaction with the calculator was an evaluation (`=`) operation and no actions have been performed since.
-    private var noActionsSinceLastEvaluation = false
+    private func doSignChange() {
+        // If sign change is entered before first operand,
+        // queue it for later.
+        if !self.isDirty {
+            self.pendingSignChange = true
+        }
+        
+        // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
+        // the sign change should apply on the (to-be-entered) second operand, not the first.
+        if self.followsBinaryOperator() {
+            assert(self.isDirty)
+            self.redirectInputToSecondOperand()
+            self.pendingSignChange = true
+        }
+        
+        self[keyPath: currentOperand]?.negate()
+    }
+    
+    private func doPercentage() {
+        guard let currentValue = self[keyPath: currentOperand]?.value else { return }
+        
+        if currentOperand == \.firstOperand {
+            // do not change first operand after the operator has been input
+            guard operation == nil else { return }
+            apply()
+        } else if currentOperand == \.secondOperand {
+            apply()
+        }
+        
+        func apply() {
+            self[keyPath: currentOperand]!.setValue(currentValue / 100.0)
+            self.clearOnNextInput = true
+        }
+    }
+    
+    /// `true` if the next input received should clear the contents of the current operand.
+    private var clearOnNextInput = false
     @discardableResult public func evaluate() -> Double {
         defer {
             // IMPORTANT: re-evaluate defer statement usage if we do error handling
-            noActionsSinceLastEvaluation = true
+            clearOnNextInput = true
         }
         // if the operator or 2nd operand are not specified,
         // simply return the 1st operand as result
@@ -234,7 +252,7 @@ public class SingleStepCalculator {
 
         self.isDirty = false
         self.pendingSignChange = false
-        self.noActionsSinceLastEvaluation = false
+        self.clearOnNextInput = false
     }
     
     public enum BinaryOperation: CaseIterable {
@@ -249,6 +267,7 @@ public class SingleStepCalculator {
     
     public enum UnaryOperation {
         case signChange
+        case percentage
     }
 }
 
@@ -268,6 +287,6 @@ extension SingleStepCalculator: Equatable {
             && lhs.currentOperand == rhs.currentOperand
             && lhs.isDirty == rhs.isDirty
             && lhs.pendingSignChange == rhs.pendingSignChange
-            && lhs.noActionsSinceLastEvaluation == rhs.noActionsSinceLastEvaluation
+            && lhs.clearOnNextInput == rhs.clearOnNextInput
     }
 }

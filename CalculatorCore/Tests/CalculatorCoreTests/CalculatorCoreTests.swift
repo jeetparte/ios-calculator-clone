@@ -167,11 +167,33 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     func testDecimalInsertionAfterEvaluation() throws {
+        // Insertion of decimal point after evaluation (i.e. hitting '=') should override the result.
         self.inputAnyMethod("-12.34")
         calculator.evaluate()
         calculator.insertDecimalPoint()
         try calculator.inputDigit(1)
         XCTAssertEqual(self.getDisplayValue(), 0.1)
+    }
+    
+    func testDecimalInsertionAfterPercentage() throws {
+        // Insertion of decimal point after percentage application should override the result.
+        
+        // First operand
+        self.inputAnyMethod("8")
+        calculator.inputOperation(.percentage)
+        calculator.insertDecimalPoint()
+        try calculator.inputDigit(5)
+        XCTAssertEqual(calculator.displayValue!, 0.5)
+        
+        // Second operand
+        calculator.inputOperation(.add)
+        self.inputAnyMethod("9")
+        calculator.inputOperation(.percentage)
+        calculator.insertDecimalPoint()
+        try calculator.inputDigits(1,2,5)
+        XCTAssertEqual(calculator.displayValue, 0.125)
+        
+        XCTAssertEqual(calculator.evaluate(), 0.625)
     }
     
     func testNegativeEntryDigits() throws {
@@ -370,6 +392,79 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.displayValue!, 2)
         try calculator.inputDigit(6)
         XCTAssertEqual(calculator.displayValue!, 26)
+    }
+    
+    // MARK: - Percent sign
+    func testPercentage() {
+        // The percentage operation applies when input after the current operand
+        self.inputAnyMethod("100.0")
+        calculator.inputOperation(.percentage)
+        XCTAssertEqual(calculator.displayValue!, 1.00)
+        
+        calculator.inputOperation(.multiply)
+        self.inputAnyMethod("8.0")
+        calculator.inputOperation(.percentage)
+        XCTAssertEqual(calculator.displayValue!, 0.08)
+    }
+    
+    func testRepeatedPercentage() {
+        // Check repeated application of percentage
+        self.inputAnyMethod("1000000.0") // 1e6
+        calculator.inputOperation(.percentage)
+        XCTAssertEqual(calculator.displayValue!, 1e4)
+        calculator.inputOperation(.percentage)
+        XCTAssertEqual(calculator.displayValue!, 1e2)
+        calculator.inputOperation(.percentage)
+        XCTAssertEqual(calculator.displayValue!, 1)
+        
+        calculator.inputOperation(.multiply)
+        self.inputAnyMethod("8000000.0") // 8e6
+        calculator.inputOperation(.percentage)
+        XCTAssertEqual(calculator.displayValue!, 8e4)
+        calculator.inputOperation(.percentage)
+        XCTAssertEqual(calculator.displayValue!, 8e2)
+        calculator.inputOperation(.percentage)
+        XCTAssertEqual(calculator.displayValue!, 8)
+    }
+    
+    func testPercentageNonApply() {
+        // The percentage operation does not apply when input before an operand
+        
+        // First operand
+        calculator.inputOperation(.percentage)
+        self.inputAnyMethod("100.0")
+        XCTAssertEqual(calculator.displayValue!, 100.0)
+        
+        // Second operand
+        calculator.inputOperation(.add)
+        calculator.inputOperation(.percentage)
+        // there's no second operand yet, but the operation shouldn't apply to first operand either
+        XCTAssertEqual(calculator.displayValue!, 100.0)
+        self.inputAnyMethod("8.0")
+        XCTAssertEqual(calculator.displayValue!, 8.0)
+        
+        XCTAssertEqual(calculator.evaluate(), 108.0)
+    }
+    
+    func testInputAfterPercentage() {
+        // Input after percentage application should override the result.
+        
+        // First operand
+        self.inputAnyMethod("8")
+        calculator.inputOperation(.percentage)
+        XCTAssertEqual(self.getDisplayValue(), 0.08)
+        self.inputAnyMethod("123")
+        XCTAssertEqual(self.getDisplayValue(), 123.0)
+        
+        // Second operand
+        calculator.inputOperation(.multiply)
+        self.inputAnyMethod("9")
+        calculator.inputOperation(.percentage)
+        XCTAssertEqual(calculator.displayValue!, 0.09)
+        self.inputAnyMethod("456")
+        XCTAssertEqual(calculator.displayValue!, 456.0)
+        
+        XCTAssertEqual(calculator.evaluate(), 123.0 * 456.0)
     }
     
     // MARK: Sign change
