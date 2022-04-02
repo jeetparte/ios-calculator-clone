@@ -117,40 +117,7 @@ final class CalculatorCoreTests: XCTestCase {
     
     // MARK: - Tests
     
-    // MARK: Input
-    
-    func testStringToDouble() {
-        // Having input specified as Strings is easier (so we can extract the digits),
-        // but validating output requires Doubles.
-        // When expected output equals input, we'd like to rely on this conversion to avoid specifying the number in both formats.
-        let tests: [(string: String, expected: Double)] = [
-            ("12", 12),
-            ("-23", -23),
-            ("456", 456),
-            ("9999", 9999),
-            ("0", 0),
-            ("-9999", -9999),
-            ("6", 6),
-            ("456", 456),
-            ("12.0", 12.0),
-            ("-23.22", -23.22),
-            ("456.777", 456.777),
-            ("9999.11", 9999.11),
-            ("0.0", 0.0),
-            ("0.01", 0.01),
-            ("-9999.456", -9999.456),
-            ("6.5", 6.5),
-            ("456.123", 456.123),
-            ("-123456789.012345678", -123456789.012345678),
-            ("0.0000000013", 0.0000000013),
-            ("100000000000000000000", 1e20)
-        ]
-        
-        for test in tests {
-            XCTAssertEqual(Double(test.string), test.expected)
-        }
-    }
-    
+    // MARK: Input    
     func testNumberInput() {
         // Numbers entered update the display value and evaluate to themselves.
         let numbers: [String] = ["0", "1", "12", "-12", "345", "5", "-67", "890", "123", "456", "7890"]
