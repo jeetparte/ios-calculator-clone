@@ -40,8 +40,11 @@ public class SingleStepCalculator {
     }
     
     private var currentOperand = \SingleStepCalculator.firstOperand
-    private var isDirty = false
+    private var isDirty = false    
+    /// For number input, we need to track any sign changes and apply them at the time of input.
+    private var pendingSignChange = false
     
+    // MARK: - Public API
     /** The value of the operand which is currently most suitable for display.
         - Note: A return value of `nil` signifies ...
     */
@@ -53,7 +56,7 @@ public class SingleStepCalculator {
     }
     
     /**
-        - Precondition: *d* must one of the digits between 0 and 9.     
+        - Precondition: *d* must one of the digits between 0 and 9.
         - Throws: `CalculatorError.invalidInput` if *d* is not a single-digit number between 0 and 9.
      */
     public func inputDigit(_ d: Int) throws {
@@ -92,26 +95,7 @@ public class SingleStepCalculator {
         }
     }
     
-    private func recordInput() {
-        self.clearOnNextInput = false
-        self.isDirty = true
-    }
-    
-    private func followsBinaryOperator() -> Bool {
-        // true if a binary operation has been entered
-        // but the input of the second operand has not begun
-        return operation != nil && secondOperand == nil
-    }
-    
-    private func redirectInputToSecondOperand() {
-        self.secondOperand = CalculatorNumber(0.0) // this sets it as the current operand as well
-    }
-    
-    private func clearCurrent() {
-        self[keyPath: currentOperand]?.reset()
-    }
-
-    // This applies only to digit input mode. TODO: - document it.
+    // This applies only to digit input mode. TODO: document it.
     public func insertDecimalPoint() {
         // clear previous evaluation, if present
         if self.clearOnNextInput {
@@ -161,8 +145,6 @@ public class SingleStepCalculator {
         }
     }
     
-    /// For number input, we need to track any sign changes and apply them at the time of input.
-    private var pendingSignChange = false
     public func inputOperation(_ op: UnaryOperation) {
         switch op {
         case .signChange:
@@ -170,6 +152,87 @@ public class SingleStepCalculator {
         case .percentage:
             self.doPercentage()
         }
+    }
+    
+    @discardableResult public func evaluate() -> Double {
+        defer {
+            // IMPORTANT: re-evaluate defer statement usage if we do error handling
+            clearOnNextInput = true
+        }
+        // if the operator or 2nd operand are not specified,
+        // simply return the 1st operand as result
+        guard let operation = self.operation, let secondOperand = self.secondOperand  else {
+            self.secondOperand = nil
+            self.operation = nil
+            return self.firstOperand!.value
+        }
+        
+        switch operation {
+        case .multiply:
+            firstOperand *= secondOperand
+        case .divide:
+            firstOperand /= secondOperand
+        case .add:
+            firstOperand += secondOperand
+        case .subtract:
+            firstOperand -= secondOperand
+        default:
+            // TODO: handle other binary operations
+            break
+        }
+        
+        self.secondOperand = nil
+        self.operation = nil
+        
+        return self.firstOperand!.value
+    }
+    
+    public func allClear() {
+        // reset to initial state
+        self.firstOperand.reset()
+        self.secondOperand = nil
+        self.currentOperand = \.firstOperand
+
+        self.operation = nil
+
+        self.isDirty = false
+        self.pendingSignChange = false
+        self.clearOnNextInput = false
+    }
+    
+    public enum BinaryOperation: CaseIterable {
+        case multiply
+        case divide
+        case add
+        case subtract
+        case power
+        case powerReverseOperands // * should we implement this?
+        case logToTheBase
+    }
+    
+    public enum UnaryOperation {
+        case signChange
+        case percentage
+    }
+    // MARK: -
+    
+    private func recordInput() {
+        self.clearOnNextInput = false
+        self.isDirty = true
+    }
+    
+    private func followsBinaryOperator() -> Bool {
+        // true if a binary operation has been entered
+        // but the input of the second operand has not begun
+        return operation != nil && secondOperand == nil
+    }
+    
+    private func redirectInputToSecondOperand() {
+        self.secondOperand = CalculatorNumber(0.0) // this sets it as the current operand as well
+    }
+    
+    private func clearCurrent() {
+        self[keyPath: currentOperand]?.reset()
     }
     
     private func doSignChange() {
@@ -209,66 +272,6 @@ public class SingleStepCalculator {
     
     /// `true` if the next input received should clear the contents of the current operand.
     private var clearOnNextInput = false
-    @discardableResult public func evaluate() -> Double {
-        defer {
-            // IMPORTANT: re-evaluate defer statement usage if we do error handling
-            clearOnNextInput = true
-        }
-        // if the operator or 2nd operand are not specified,
-        // simply return the 1st operand as result
-        guard let operation = self.operation, let secondOperand = self.secondOperand  else {
-            self.secondOperand = nil
-            self.operation = nil
-            return self.firstOperand!.value
-        }
-        
-        switch operation {
-        case .multiply:
-            firstOperand *= secondOperand
-        case .divide:
-            firstOperand /= secondOperand
-        case .add:
-            firstOperand += secondOperand
-        case .subtract:
-            firstOperand -= secondOperand
-        default:
-            // TODO: - handle other binary operations
-            break
-        }
-        
-        self.secondOperand = nil
-        self.operation = nil
-        
-        return self.firstOperand!.value
-    }
-    
-    public func allClear() {
-        // reset to initial state
-        self.firstOperand.reset()
-        self.secondOperand = nil
-        self.currentOperand = \.firstOperand
-
-        self.operation = nil
-
-        self.isDirty = false
-        self.pendingSignChange = false
-        self.clearOnNextInput = false
-    }
-    
-    public enum BinaryOperation: CaseIterable {
-        case multiply
-        case divide
-        case add
-        case subtract
-        case power
-        case powerReverseOperands // * should we implement this?
-        case logToTheBase
-    }
-    
-    public enum UnaryOperation {
-        case signChange
-        case percentage
-    }
 }
 
 extension SingleStepCalculator: CustomStringConvertible {
