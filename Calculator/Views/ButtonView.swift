@@ -155,6 +155,8 @@ class ButtonView: HighlightableBackgroundView {
     // MARK: -
     private static func getFontWeight(for buttonColor: ButtonColor) -> UIFont.Weight {
         switch buttonColor {
+        case _ where buttonColor.isScientific:
+            return .medium
         case .standardButtonProminent, .accentColor:
             return .medium
         default:
@@ -199,7 +201,7 @@ class ButtonView: HighlightableBackgroundView {
     }
     
     private struct Constants {
-        static let scientificButtonFontSize: CGFloat = 16
+        static let scientificButtonFontSize: CGFloat = 17
         
         struct Portrait {
             static let standardButtonFontSize: CGFloat = 40
