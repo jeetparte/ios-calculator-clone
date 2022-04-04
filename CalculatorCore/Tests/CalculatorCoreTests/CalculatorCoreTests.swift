@@ -5,15 +5,19 @@ import RealModule
 final class CalculatorCoreTests: XCTestCase {
     var calculator: SingleStepCalculator!
     
-    // a config parameter to run tests a little differently
+    // config parameters to run tests a little differently
     static var which: Int = 0
+    static var inputMethod: InputMethod!
     
     override class func setUp() {
         // retrieve arguments passed at launch
-        let arg = UserDefaults.standard.integer(forKey: "which")
-        assert(arg != 0)
-        which = arg
-        print("Setup test-case for choice = ", which)
+        let which = UserDefaults.standard.integer(forKey: "which")
+        assert(which != 0)
+        self.which = which
+        
+        let inputMethod = UserDefaults.standard.integer(forKey: "inputMethod")
+        assert(inputMethod != 0)
+        self.inputMethod = .init(rawValue: inputMethod)!
     }
     
     
@@ -46,8 +50,7 @@ final class CalculatorCoreTests: XCTestCase {
     }
     /// Inputs in either of the accepted ways: digit-by-digit or as a block.
     private func inputAnyMethod(_ number: String) {
-        let method = InputMethod(rawValue: Self.which) ?? .digit
-        self.input(number, inputMethod: method)
+        self.input(number, inputMethod: Self.inputMethod)
     }
     
     private func input(_ number: String, inputMethod method: InputMethod) {
@@ -93,7 +96,7 @@ final class CalculatorCoreTests: XCTestCase {
             }
             
             // optionally clear for next test
-            if CalculatorCoreTests.which.isEven {
+            if Int.random(in: 1...2).isEven {
                 self.newCalculator()
             }
         }

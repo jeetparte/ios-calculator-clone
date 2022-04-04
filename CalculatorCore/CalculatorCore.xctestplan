@@ -2,9 +2,12 @@
   "configurations" : [
     {
       "id" : "7A989D91-8340-4016-9B6F-EE7869BEE29E",
-      "name" : "Digit input + misc.",
+      "name" : "Digit input + misc. odd",
       "options" : {
         "commandLineArgumentEntries" : [
+          {
+            "argument" : "-inputMethod 1"
+          },
           {
             "argument" : "-which 1"
           }
@@ -12,10 +15,41 @@
       }
     },
     {
-      "id" : "47ECFF94-85B4-4A7E-8604-D9817FC776C0",
-      "name" : "Number input + misc.",
+      "id" : "996018CC-B32C-4153-B4AD-B83CB8864C9F",
+      "name" : "Digit input + misc. even",
       "options" : {
         "commandLineArgumentEntries" : [
+          {
+            "argument" : "-inputMethod 1"
+          },
+          {
+            "argument" : "-which 2"
+          }
+        ]
+      }
+    },
+    {
+      "id" : "47ECFF94-85B4-4A7E-8604-D9817FC776C0",
+      "name" : "Number input + misc. odd",
+      "options" : {
+        "commandLineArgumentEntries" : [
+          {
+            "argument" : "-inputMethod 2"
+          },
+          {
+            "argument" : "-which 1"
+          }
+        ]
+      }
+    },
+    {
+      "id" : "65BB1DDD-5375-41CF-B256-F5225E0B0563",
+      "name" : "Number input + misc. even",
+      "options" : {
+        "commandLineArgumentEntries" : [
+          {
+            "argument" : "-inputMethod 2"
+          },
           {
             "argument" : "-which 2"
           }
