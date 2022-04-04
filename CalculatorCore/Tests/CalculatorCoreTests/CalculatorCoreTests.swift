@@ -233,6 +233,132 @@ final class CalculatorCoreTests: XCTestCase {
         
         XCTAssertEqual(calculator.evaluate(), 0.625)
     }
+    // MARK: Memory functions
+    func testInitialMemory() {
+        // The initial value of the memory register is 0
+        let initial = calculator.recallMemory()
+        XCTAssertEqual(initial, 0.0)
+    }
+    
+    func testMemoryFunctionsSequence() {
+        // Check that an arbitrary sequence of memory operations gives the expected outputs.
+        
+        self.inputAnyMethod("1")
+        calculator.performMemoryFunction(.add)
+        XCTAssertEqual(calculator.recallMemory(), 1.0)
+        
+        self.inputAnyMethod("2")
+        calculator.performMemoryFunction(.add)
+        XCTAssertEqual(calculator.recallMemory(), 3.0)
+        
+        self.inputAnyMethod("3")
+        calculator.performMemoryFunction(.subtract)
+        XCTAssertEqual(calculator.recallMemory(), 0.0)
+        
+        self.inputAnyMethod("4")
+        calculator.performMemoryFunction(.subtract)
+        XCTAssertEqual(calculator.recallMemory(), -4.0)
+    }
+    
+    func testMemoryAdd() {
+        // The memory-add operation adds the value of the current operand to the memory register.
+        
+        // First operand
+        self.inputAnyMethod("50.23")
+        calculator.performMemoryFunction(.add)
+        XCTAssertEqual(calculator.recallMemory(), 50.23)
+        
+        // Second operand
+        self.setUp()
+        self.inputAnyMethod("50.23")
+        calculator.inputOperation(.divide)
+        self.inputAnyMethod("-12.2")
+        calculator.performMemoryFunction(.add)
+        XCTAssertEqual(calculator.recallMemory(), -12.2)
+    }
+    
+    func testMemorySubtract() {
+        // The memory-subtract operation subtracts the value of the current operand from the memory register.
+        
+        // First operand
+        self.inputAnyMethod("50.23")
+        calculator.performMemoryFunction(.subtract)
+        XCTAssertEqual(calculator.recallMemory(), -50.23)
+        
+        // Second operand
+        self.setUp()
+        self.inputAnyMethod("50.23")
+        calculator.inputOperation(.divide)
+        self.inputAnyMethod("-12.2")
+        calculator.performMemoryFunction(.subtract)
+        XCTAssertEqual(calculator.recallMemory(), 12.2)
+    }
+    
+    func testMemoryClear() {
+        // The memory-clear operation resets the memory register to its initial value, i.e. 0.
+        
+        // First modify the memory register
+        self.inputAnyMethod("50.23")
+        calculator.performMemoryFunction(.subtract)
+        XCTAssertEqual(calculator.recallMemory(), -50.23)
+        // Now clear and check
+        calculator.performMemoryFunction(.clear)
+        XCTAssertEqual(calculator.recallMemory(), 0.0)
+    }
+    
+    func testMemoryFunctionsClearNextInput() {
+        // If an operand is added (via memory-add or memory-subtract operations) to memory, subsequent input for the same operand should override the previous value.
+        
+        self.inputAnyMethod("50.23")
+        calculator.performMemoryFunction(.add)
+        self.inputAnyMethod("1")
+        XCTAssertEqual(self.getDisplayValue(), 1)
+        
+        calculator.inputOperation(.multiply)
+        self.inputAnyMethod("2")
+        calculator.performMemoryFunction(.subtract)
+        self.inputAnyMethod("4")
+        XCTAssertEqual(calculator.displayValue!, 4.0)
+    }
+    
+    func testMemoryRecallReplacesOperand() {
+        // The memory-recall operation should replace the current operand with the value of the memory register
+        
+        // First modify the memory register
+        self.inputAnyMethod("50.23")
+        calculator.performMemoryFunction(.add)
+        // Now test
+        
+        // Replace first operand
+        self.inputAnyMethod("1")
+        calculator.recallMemory()
+        XCTAssertEqual(calculator.displayValue!, 50.23)
+        calculator.inputOperation(.multiply)
+        self.inputAnyMethod("2")
+        XCTAssertEqual(calculator.evaluate(), 100.46)
+        
+        // Replace second operand
+        calculator.allClear() // this should not affect the memory register
+        self.inputAnyMethod("3")
+        calculator.inputOperation(.add)
+        self.inputAnyMethod("4")
+        calculator.recallMemory()
+        XCTAssertEqual(calculator.displayValue!, 50.23)
+        XCTAssertEqual(calculator.evaluate(), 53.23)
+        
+    }
+    
+    func testMemoryRecallAfterOperator() {
+        // If memory is recalled after entering an operator, the memory value should replace the second operand, not the first
+        
+        self.inputAnyMethod("44")
+        calculator.performMemoryFunction(.add)
+        
+        self.inputAnyMethod("2")
+        calculator.inputOperation(.add)
+        calculator.recallMemory()
+        XCTAssertEqual(calculator.evaluate(), 46)
+    }
 
     // MARK: Evaluation
     func testEvaluateIdentity() {

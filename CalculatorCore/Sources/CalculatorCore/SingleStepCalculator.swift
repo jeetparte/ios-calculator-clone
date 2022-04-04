@@ -40,9 +40,11 @@ public class SingleStepCalculator {
     }
     
     private var currentOperand = \SingleStepCalculator.firstOperand
-    private var isDirty = false    
+    private var isDirty = false
     /// For number input, we need to track any sign changes and apply them at the time of input.
     private var pendingSignChange = false
+    
+    private var memory: Double = 0
     
     // MARK: - Public API
     /** The value of the operand which is currently most suitable for display.
@@ -154,7 +156,8 @@ public class SingleStepCalculator {
         }
     }
     
-    @discardableResult public func evaluate() -> Double {
+    @discardableResult
+    public func evaluate() -> Double {
         defer {
             // IMPORTANT: re-evaluate defer statement usage if we do error handling
             clearOnNextInput = true
@@ -187,6 +190,39 @@ public class SingleStepCalculator {
         return self.firstOperand!.value
     }
     
+    /// - Returns: The value of the memory register after performing the given memory function.
+    public func performMemoryFunction(_ f: MemoryFunction) {
+        switch f {
+        case .clear:
+            self.memory = 0.0
+        case .add, .subtract:
+            guard var current = self[keyPath: currentOperand]?.value else { break }
+            if currentOperand == \.firstOperand {
+                // if an operator has been input, do nothing
+                guard operation == nil else { break }
+                if f == .subtract { current = -current }
+                self.memory += current
+                self.clearOnNextInput = true
+            } else if currentOperand == \.secondOperand {
+                if f == .subtract { current = -current }
+                self.memory += current
+                self.clearOnNextInput = true
+            }
+        }
+    }
+    
+    @discardableResult
+    public func recallMemory() -> Double {
+        // Replace current operand with memory register value
+        if self.followsBinaryOperator() {
+            self.currentOperand = \.secondOperand
+        }
+        self[keyPath: currentOperand] = CalculatorNumber(self.memory)
+        self.clearOnNextInput = true
+        
+        return self.memory
+    }
+    
     public func allClear() {
         // reset to initial state
         self.firstOperand.reset()
@@ -198,6 +234,8 @@ public class SingleStepCalculator {
         self.isDirty = false
         self.pendingSignChange = false
         self.clearOnNextInput = false
+        
+        // TODO: what about memory register?
     }
     
     public enum BinaryOperation: CaseIterable {
@@ -213,6 +251,12 @@ public class SingleStepCalculator {
     public enum UnaryOperation {
         case signChange
         case percentage
+    }
+    
+    public enum MemoryFunction {
+        case clear
+        case add
+        case subtract
     }
     // MARK: -
     
@@ -291,5 +335,7 @@ extension SingleStepCalculator: Equatable {
             && lhs.isDirty == rhs.isDirty
             && lhs.pendingSignChange == rhs.pendingSignChange
             && lhs.clearOnNextInput == rhs.clearOnNextInput
+        
+        // FIXME: This doesn't check for memory register atm.
     }
 }
