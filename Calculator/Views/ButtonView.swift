@@ -10,17 +10,9 @@ import UIKit
 class ButtonView: HighlightableBackgroundView {
     var buttonConfiguration: ButtonConfiguration
     var id: ButtonID
-    
-    var showsAlternateKey: Bool = false // default
-    
-    var label: UILabel!
-    var imageView: UIImageView!
-    
+        
     private var previousFontSize: CGFloat?
-    
-    private var normalForegroundColor: UIColor? {
-        return self.buttonConfiguration.color == .standardButtonProminent ? .black : .white
-    }
+    private var foreground: ButtonForegroundProvider
     
     override var visualState: HighlightableBackgroundView.VisualState {
         didSet {
@@ -39,12 +31,10 @@ class ButtonView: HighlightableBackgroundView {
                     assertionFailure("Unhandled case")
                     return
                 }
-                label?.textColor = selectedTextColor
-                imageView?.tintColor = selectedTextColor
+                foreground.setTextColor(selectedTextColor)
             case (_, .normal):
                 // Revert foreground color to previous state
-                label?.textColor = normalForegroundColor
-                imageView?.tintColor = normalForegroundColor
+                foreground.setTextColor(nil)
             default:
                 break
             }
@@ -54,6 +44,7 @@ class ButtonView: HighlightableBackgroundView {
     init(buttonConfiguration: ButtonConfiguration) {
         self.buttonConfiguration = buttonConfiguration
         self.id = buttonConfiguration.id
+        self.foreground = ButtonForegroundProvider(buttonConfiguration: buttonConfiguration)
         
         // set the background for various states
         let backgroundColors = Self.getBackgroundColors(for: buttonConfiguration)
@@ -63,17 +54,9 @@ class ButtonView: HighlightableBackgroundView {
 //        self.layer.borderColor = UIColor.systemRed.cgColor
 //        self.layer.borderWidth = 1.0
         
-        switch buttonConfiguration.textType {
-        // TODO both of these are very similar; can we merge them?
-        case .image:
-            self.initializeImage()
-            // update image whenever an orientation change notification is posted
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updateImage(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
-        case .label:
-            self.initializeLabel()
-            // update label whenever an orientation change notification is posted
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updateLabel(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
-        }
+        self.initializeForegroundText()
+        // update foreground whenever an orientation change notification is posted
+        NotificationCenter.default.addObserver(self, selector: #selector(self.updateForegroundText(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
         
         if self.id.isBinaryOperator {
             NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeBinaryOperation(_:)), name: SharedConstants.selectedBinaryOperationChanged, object: nil)
@@ -102,89 +85,38 @@ class ButtonView: HighlightableBackgroundView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Label
-    private func initializeLabel() {
-        let label = UILabel()
-        self.label = label
-        self.addSubview(label)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-        label.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-        
-        label.text = self.showsAlternateKey ? self.buttonConfiguration.alternateText :  self.buttonConfiguration.text
-        label.textColor = self.normalForegroundColor
+    private func initializeForegroundText() {
+        let foregroundView = foreground.getView()
+        self.addSubview(foregroundView)
+        foregroundView.translatesAutoresizingMaskIntoConstraints = false
+        foregroundView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+        foregroundView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
     }
     
-    @objc func updateLabel(_ orientationChangeNotification: Notification) {
+    @objc func updateForegroundText(_ orientationChangeNotification: Notification) {
         guard let userInfo = orientationChangeNotification.userInfo,
               let newOrientation = userInfo[SharedConstants.newOrientationUserInfoKey] as?
                 InterfaceOrientation else {
                     assertionFailure(
                         "An orientation-change notification was posted without information about the new orientation. " +
-                        "Cannot decide buttons' label appearance for unknown orientation.")
+                        "Cannot decide buttons' foreground appearance for unknown orientation.")
                     return
                 }
         
         let fontSize = Self.getFontSize(for: buttonConfiguration.color, orientation: newOrientation)
         if self.previousFontSize == nil {
             // setting font for the first time
-            
-            let weight: UIFont.Weight =
-            [.standardButtonProminent, .accentColor]
-                .contains(self.buttonConfiguration.color) ? .medium : .regular
-            self.label.font = UIFont.systemFont(ofSize: fontSize, weight: weight)
+            let weight = Self.getFontWeight(for: buttonConfiguration.color)
+            foreground.setFont(size: fontSize, weight: weight)
             self.previousFontSize = fontSize
+
             return
         }
         
         guard fontSize != self.previousFontSize else { return }
         // visually, the font size changes abruptly, so we use this transition animation to smooth it out
-        UIView.transition(with: label, duration: 0.0, options: [.transitionCrossDissolve]) {
-            self.label.font = self.label.font.withSize(fontSize)
-        }
-        self.previousFontSize = fontSize
-    }
-    
-    //MARK: - Image
-    private func initializeImage() {
-        let imageView = UIImageView()
-        self.imageView = imageView
-        self.addSubview(imageView)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-        imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-                
-        imageView.image = UIImage(systemName: buttonConfiguration.text)
-        imageView.tintColor  = self.normalForegroundColor
-    }
-    
-    @objc func updateImage(_ orientationChangeNotification: Notification) {
-        guard let userInfo = orientationChangeNotification.userInfo,
-              let newOrientation = userInfo[SharedConstants.newOrientationUserInfoKey] as?
-                InterfaceOrientation else {
-                    assertionFailure(
-                        "An orientation-change notification was posted without information about the new orientation. " +
-                        "Cannot decide buttons' image appearance for unknown orientation.")
-                    return
-                }
-        
-        let fontSize = Self.getFontSize(for: buttonConfiguration.color, orientation: newOrientation)
-        if self.previousFontSize == nil {
-            // setting font for the first time
-            let weight: UIFont.Weight =
-            [.standardButtonProminent, .accentColor]
-                .contains(self.buttonConfiguration.color) ? .medium : .regular
-            self.imageView.preferredSymbolConfiguration = .init(pointSize: fontSize, weight: weight.symbolWeight(), scale: .medium)
-            self.previousFontSize = fontSize
-            return
-        }
-        
-        guard fontSize != self.previousFontSize else { return }
-        // visually, the font size changes abruptly, so we use this transition animation to smooth it out
-        UIView.transition(with: imageView, duration: 0.0, options: [.transitionCrossDissolve]) {
-            let newConfiguration = UIImage.SymbolConfiguration(pointSize: fontSize)
-            self.imageView.preferredSymbolConfiguration = self.imageView.preferredSymbolConfiguration?.applying(newConfiguration)
+        UIView.transition(with: foreground.getView(), duration: 0.0, options: [.transitionCrossDissolve]) { [self] in
+            foreground.updateFont(size: fontSize)
         }
         self.previousFontSize = fontSize
     }
@@ -221,6 +153,15 @@ class ButtonView: HighlightableBackgroundView {
     }
     
     // MARK: -
+    private static func getFontWeight(for buttonColor: ButtonColor) -> UIFont.Weight {
+        switch buttonColor {
+        case .standardButtonProminent, .accentColor:
+            return .medium
+        default:
+            return .regular
+        }
+    }
+    
     private static func getFontSize(for buttonColor: ButtonColor, orientation: InterfaceOrientation) -> CGFloat {
         switch buttonColor {
         // Special cases

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		CE1028C727BA98E000BB7D05 /* Buttons.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1028C627BA98E000BB7D05 /* Buttons.swift */; };
+		CE21949427FB2E57002A6C85 /* ButtonForegroundTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE21949327FB2E57002A6C85 /* ButtonForegroundTextView.swift */; };
 		CE24266E27B1522C00503A96 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE24266D27B1522C00503A96 /* AppDelegate.swift */; };
 		CE24267027B1522C00503A96 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE24266F27B1522C00503A96 /* SceneDelegate.swift */; };
 		CE24267227B1522C00503A96 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE24267127B1522C00503A96 /* ViewController.swift */; };
@@ -26,6 +27,7 @@
 
 /* Begin PBXFileReference section */
 		CE1028C627BA98E000BB7D05 /* Buttons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Buttons.swift; sourceTree = "<group>"; };
+		CE21949327FB2E57002A6C85 /* ButtonForegroundTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonForegroundTextView.swift; sourceTree = "<group>"; };
 		CE24266A27B1522C00503A96 /* Calculator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Calculator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE24266D27B1522C00503A96 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CE24266F27B1522C00503A96 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				CE24268327B16A5B00503A96 /* ButtonView.swift */,
+				CE21949327FB2E57002A6C85 /* ButtonForegroundTextView.swift */,
 				CE24268127B1609E00503A96 /* ButtonsGridView.swift */,
 				CEEC737027C9286C00CEE635 /* HighlightableBackgroundView.swift */,
 			);
@@ -193,6 +196,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE21949427FB2E57002A6C85 /* ButtonForegroundTextView.swift in Sources */,
 				CE24267227B1522C00503A96 /* ViewController.swift in Sources */,
 				CE6DB67E27D5F76600AD1667 /* InterfaceOrientation.swift in Sources */,
 				CE24266E27B1522C00503A96 /* AppDelegate.swift in Sources */,
