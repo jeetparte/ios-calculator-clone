@@ -29,11 +29,18 @@ class ButtonView: HighlightableBackgroundView {
             // change foreground color when selected or unselected
             switch (oldValue, visualState) {
             case (_, .selected):
-                // Change foreground color to normal variant of background color
-                if let selectedTextColor = self.stateBackgroundColorMap[.normal], selectedTextColor != nil {
-                    label?.textColor = selectedTextColor!
-                    imageView?.tintColor = selectedTextColor!
+                let selectedTextColor: UIColor?
+                if self.buttonConfiguration.color == .accentColor {
+                    // Change foreground color to normal variant of background color
+                    selectedTextColor = self.stateBackgroundColorMap[.normal]!
+                } else if self.buttonConfiguration.color == .scientificButtonColor {
+                    selectedTextColor = .black
+                } else {
+                    assertionFailure("Unhandled case")
+                    return
                 }
+                label?.textColor = selectedTextColor
+                imageView?.tintColor = selectedTextColor
             case (_, .normal):
                 // Revert foreground color to previous state
                 label?.textColor = normalForegroundColor
@@ -51,7 +58,7 @@ class ButtonView: HighlightableBackgroundView {
         // set the background for various states
         let backgroundColors = Self.getBackgroundColors(for: buttonConfiguration)
         super.init(normalBackgroundColor: backgroundColors.normal,
-                   highlightedBackgroundColor: backgroundColors.highlighted)
+                   highlightedBackgroundColor: backgroundColors.highlighted, selectedBackgroundColor: backgroundColors.selected)
                 
 //        self.layer.borderColor = UIColor.systemRed.cgColor
 //        self.layer.borderWidth = 1.0
@@ -70,6 +77,12 @@ class ButtonView: HighlightableBackgroundView {
         
         if self.id.isBinaryOperator {
             NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeBinaryOperation(_:)), name: SharedConstants.selectedBinaryOperationChanged, object: nil)
+        }
+        
+        if self.id == .mRecall {
+            self.selectionAnimationDuration = 0.5
+            
+            NotificationCenter.default.addObserver(self, selector: #selector(self.memoryRecallSelectionStateChanged(_:)), name: SharedConstants.shouldChangeMemoryRecallButtonSelectionState, object: nil)
         }
     }
     
@@ -176,7 +189,7 @@ class ButtonView: HighlightableBackgroundView {
         self.previousFontSize = fontSize
     }
     
-    // MARK: - Binary operators
+    // MARK: - Special button handlers
     @objc func didChangeBinaryOperation(_ binaryOperationChangedNotification: Notification) {
         guard let userInfo = binaryOperationChangedNotification.userInfo,
               let infoUnderKey = userInfo[SharedConstants.selectedBinaryOperationUserInfoKey],
@@ -186,6 +199,21 @@ class ButtonView: HighlightableBackgroundView {
         }
         
         if self.id == operationToSelect {
+            self.visualState = .selected
+        } else {
+            self.visualState = .normal
+        }
+    }
+    
+    @objc func memoryRecallSelectionStateChanged(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let shouldSelect =
+                userInfo[SharedConstants.shouldSelectMemoryRecallButton] as? Bool else {
+            assertionFailure("Could not obtain necessary information from Notification.")
+            return
+        }
+        
+        if shouldSelect {
             self.visualState = .selected
         } else {
             self.visualState = .normal
@@ -247,17 +275,20 @@ class ButtonView: HighlightableBackgroundView {
 
 extension ButtonView {
     private static func getBackgroundColors(for configuration: ButtonConfiguration) ->
-    (normal: UIColor?, highlighted: UIColor?) {
+    (normal: UIColor?, highlighted: UIColor?, selected: UIColor?) {
         var normalBackgroundColor: UIColor? = nil
         var highlightedBackgroundColor: UIColor? = nil
+        var selectedBackgroundColor: UIColor? = nil
         
         switch configuration.color {
         case .accentColor:
             normalBackgroundColor = UIColor(named: "ButtonAccentColor")!
             highlightedBackgroundColor = UIColor(named: "ButtonAccentColorHighlighted")!
+            selectedBackgroundColor = .white
         case .scientificButtonColor:
             normalBackgroundColor = UIColor(named: "ScientificButtonColor")!
             highlightedBackgroundColor = UIColor(named: "ScientificButtonColorHighlighted")!
+            selectedBackgroundColor = UIColor(named: "ScientificButtonColorSelected")!
         case .scientificButtonSelected:
             fatalError("unhandled case") // TODO
         case .standardButtonColor:
@@ -268,6 +299,6 @@ extension ButtonView {
             highlightedBackgroundColor = UIColor(named: "StandardButtonProminentColorHighlighted")!
         }
         
-        return (normalBackgroundColor, highlightedBackgroundColor)
+        return (normalBackgroundColor, highlightedBackgroundColor, selectedBackgroundColor)
     }
 }

@@ -16,4 +16,8 @@ struct SharedConstants {
     
     static let selectedBinaryOperationChanged = Notification.Name("selectedBinaryOperationChanged")
     static let selectedBinaryOperationUserInfoKey = "selectedBinaryOperation"
+    
+    static let shouldChangeMemoryRecallButtonSelectionState =
+    Notification.Name("shouldChangeMemoryRecallButtonSelectionState")
+    static let shouldSelectMemoryRecallButton = "shouldSelectMemoryRecallButton"
 }

@@ -98,11 +98,31 @@ class ViewController: UIViewController {
             calculator.inputOperation(operation)
         case .equals:
             calculator.evaluate()
+        case .mAdd, .mSubtract, .mClear:
+            let function = memoryOperationsMap[buttonView.id]!
+            calculator.performMemoryFunction(function)
+        case .mRecall:
+            calculator.recallMemory()
         default:
             break
         }
         displayNumber = calculator.displayValue ?? -1.0
         self.updateCurrentOperation(buttonView.id)
+        self.updateMemoryRecallButtonSelectionState(buttonView.id)
+    }
+    
+    private func updateMemoryRecallButtonSelectionState(_ id: ButtonID) {
+        if id == .mClear {
+            // remove background highlight
+            postNotification(shouldSelect: false)
+        } else if id == .mAdd || id == .mSubtract {
+            // activate background highlight
+            postNotification(shouldSelect: true)
+        }
+        
+        func postNotification(shouldSelect: Bool) {
+            NotificationCenter.default.post(name: SharedConstants.shouldChangeMemoryRecallButtonSelectionState, object: self, userInfo: [SharedConstants.shouldSelectMemoryRecallButton : shouldSelect])
+        }
     }
     
     private func updateCurrentOperation(_ id: ButtonID) {
@@ -141,6 +161,12 @@ class ViewController: UIViewController {
         .power: .power,
         .powerReverseOperands: .powerReverseOperands,
         .logToTheBase: .logToTheBase
+    ]
+    
+    private var memoryOperationsMap: [ButtonID: SingleStepCalculator.MemoryFunction] = [
+        .mAdd: .add,
+        .mSubtract: .subtract,
+        .mClear: .clear
     ]
     
     // MARK: - Private methods
