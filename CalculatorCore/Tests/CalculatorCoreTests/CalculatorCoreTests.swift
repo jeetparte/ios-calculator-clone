@@ -196,6 +196,11 @@ final class CalculatorCoreTests: XCTestCase {
         
     }
     
+    func testRepeatedDecimalInsertion() {
+        // TODO
+        // Once a decimal is inserted, subsequent insertions on the same operand should do nothing.
+    }
+    
     func testDecimalInsertionAfterEvaluation() throws {
         // Insertion of decimal point after evaluation (i.e. hitting '=') should override the result.
         self.inputAnyMethod("-12.34")
