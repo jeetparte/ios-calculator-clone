@@ -170,6 +170,7 @@ class ViewController: UIViewController {
         .addition: .add,
         .power: .power,
         .powerReverseOperands: .powerReverseOperands,
+        .nthRoot: .nthRoot,
         .logToTheBase: .logToTheBase
     ]
     

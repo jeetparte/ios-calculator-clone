@@ -10,6 +10,7 @@ import UIKit
 class ButtonView: HighlightableBackgroundView {
     var buttonConfiguration: ButtonConfiguration
     private var id: ButtonID
+    private var alternateId: ButtonID?
     
     var currentId: ButtonID {
         return self.shouldShowAlternate ? buttonConfiguration.alternateID! : self.id
@@ -47,19 +48,25 @@ class ButtonView: HighlightableBackgroundView {
     
     var shouldShowAlternate: Bool = false {
 
-        didSet {            
+        didSet {
+            if shouldShowAlternate == oldValue { return }
             // Reject if there's no alternate ID
             if shouldShowAlternate && self.buttonConfiguration.alternateID == nil {
                 self.shouldShowAlternate = false
                 return
             }
+            
             foreground.updateText(showAlternate: shouldShowAlternate)
+            if self.visualState == .selected {
+                self.visualState = .normal
+            }
         }
     }
     
     init(buttonConfiguration: ButtonConfiguration) {
         self.buttonConfiguration = buttonConfiguration
         self.id = buttonConfiguration.id
+        self.alternateId = buttonConfiguration.alternateID
         self.foreground = ButtonForegroundProvider(buttonConfiguration: buttonConfiguration)
         
         // set the background for various states
@@ -74,7 +81,7 @@ class ButtonView: HighlightableBackgroundView {
         // update foreground whenever an orientation change notification is posted
         NotificationCenter.default.addObserver(self, selector: #selector(self.updateForegroundText(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
         
-        if self.id.isBinaryOperator {
+        if self.id.isBinaryOperator || (self.alternateId?.isBinaryOperator == true) {
             NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeBinaryOperation(_:)), name: SharedConstants.selectedBinaryOperationChanged, object: nil)
         }
         
@@ -150,7 +157,7 @@ class ButtonView: HighlightableBackgroundView {
             return
         }
         
-        if self.id == operationToSelect {
+        if self.currentId == operationToSelect {
             self.visualState = .selected
         } else {
             self.visualState = .normal

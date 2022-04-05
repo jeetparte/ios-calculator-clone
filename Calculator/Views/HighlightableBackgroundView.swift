@@ -13,7 +13,6 @@ class HighlightableBackgroundView: UIView {
     init(normalBackgroundColor: UIColor?, highlightedBackgroundColor: UIColor?,
          selectedBackgroundColor: UIColor?) {
         self.selectionAnimationDuration = 0.2
-        self.revertToNormalAnimationDuration = 0.5
         super.init(frame: .zero)
                 
         self.configureBackgroundColor(normalBackgroundColor, for: .normal)
@@ -50,7 +49,7 @@ class HighlightableBackgroundView: UIView {
                 }
             case .selected:
                 if let colorForState = self.stateBackgroundColorMap[visualState] {
-                    UIView.animate(withDuration: self.selectionAnimationDuration) {
+                    UIView.animate(withDuration: self.selectionAnimationDuration, delay: 0, options: .allowUserInteraction) {
                         self.backgroundColor = colorForState
                     }
                 }

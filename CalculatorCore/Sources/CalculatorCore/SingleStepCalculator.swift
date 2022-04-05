@@ -245,6 +245,7 @@ public class SingleStepCalculator {
         case subtract
         case power
         case powerReverseOperands // * should we implement this?
+        case nthRoot
         case logToTheBase
     }
     

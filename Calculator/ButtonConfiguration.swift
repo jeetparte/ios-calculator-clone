@@ -54,7 +54,7 @@ enum ButtonID: Hashable {
     static let binaryOperators: [Self] = [
         .division, .multiplication, .subtraction, .addition,
         .power, .powerReverseOperands,
-        .logToTheBase
+        .nthRoot, .logToTheBase
     ]
     var isBinaryOperator: Bool {
         return Self.binaryOperators.contains(self)
