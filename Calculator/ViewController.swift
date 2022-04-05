@@ -80,9 +80,9 @@ class ViewController: UIViewController {
         
     @objc func handleButtonTap(_ notification: Notification) {
         guard let buttonView = notification.object as? ButtonView else { return }
-//        print("handling tap for button \(buttonView.id)")
+//        print("handling tap for button \(buttonView.currentId)")
         
-        switch buttonView.id {
+        switch buttonView.currentId {
         case .digit(let n):
             try! calculator.inputDigit(n)
         case .decimalPoint:
@@ -99,16 +99,26 @@ class ViewController: UIViewController {
         case .equals:
             calculator.evaluate()
         case .mAdd, .mSubtract, .mClear:
-            let function = memoryOperationsMap[buttonView.id]!
+            let function = memoryOperationsMap[buttonView.currentId]!
             calculator.performMemoryFunction(function)
         case .mRecall:
             calculator.recallMemory()
+        case .changeButtons:
+            self.changeButtons()
+            buttonView.toggleSelection()
         default:
             break
         }
         displayNumber = calculator.displayValue ?? -1.0
-        self.updateCurrentOperation(buttonView.id)
-        self.updateMemoryRecallButtonSelectionState(buttonView.id)
+        self.updateCurrentOperation(buttonView.currentId)
+        self.updateMemoryRecallButtonSelectionState(buttonView.currentId)
+    }
+    
+    private func changeButtons() {
+        let candidates = buttonsGridView.allScientificButtons.flatMap {$0}.compactMap { $0 as? ButtonView }
+        candidates.forEach {
+            $0.shouldShowAlternate.toggle()
+        }
     }
     
     private func updateMemoryRecallButtonSelectionState(_ id: ButtonID) {

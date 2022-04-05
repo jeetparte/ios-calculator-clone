@@ -65,4 +65,16 @@ class ButtonForegroundProvider {
             imageView.preferredSymbolConfiguration = imageView.preferredSymbolConfiguration?.applying(newConfiguration)
         }        
     }
+    
+    func updateText(showAlternate: Bool) {
+        if showAlternate {
+            self.label?.text = self.buttonConfiguration.alternateText!
+            if let alternateImage = UIImage(systemName: self.buttonConfiguration.alternateText!) {
+                self.imageView?.image = alternateImage
+            }
+        } else {
+            self.label?.text = self.buttonConfiguration.text
+            self.imageView?.image = UIImage(systemName: buttonConfiguration.text)
+        }
+    }
 }

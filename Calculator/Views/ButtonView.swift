@@ -9,7 +9,11 @@ import UIKit
 
 class ButtonView: HighlightableBackgroundView {
     var buttonConfiguration: ButtonConfiguration
-    var id: ButtonID
+    private var id: ButtonID
+    
+    var currentId: ButtonID {
+        return self.shouldShowAlternate ? buttonConfiguration.alternateID! : self.id
+    }
         
     private var previousFontSize: CGFloat?
     private var foreground: ButtonForegroundProvider
@@ -41,6 +45,18 @@ class ButtonView: HighlightableBackgroundView {
         }
     }
     
+    var shouldShowAlternate: Bool = false {
+
+        didSet {            
+            // Reject if there's no alternate ID
+            if shouldShowAlternate && self.buttonConfiguration.alternateID == nil {
+                self.shouldShowAlternate = false
+                return
+            }
+            foreground.updateText(showAlternate: shouldShowAlternate)
+        }
+    }
+    
     init(buttonConfiguration: ButtonConfiguration) {
         self.buttonConfiguration = buttonConfiguration
         self.id = buttonConfiguration.id
@@ -66,6 +82,10 @@ class ButtonView: HighlightableBackgroundView {
             self.selectionAnimationDuration = 0.5
             
             NotificationCenter.default.addObserver(self, selector: #selector(self.memoryRecallSelectionStateChanged(_:)), name: SharedConstants.shouldChangeMemoryRecallButtonSelectionState, object: nil)
+        }
+        
+        if self.id == .changeButtons {
+            self.selectionAnimationDuration = 0.5
         }
     }
     

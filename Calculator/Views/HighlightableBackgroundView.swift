@@ -13,6 +13,7 @@ class HighlightableBackgroundView: UIView {
     init(normalBackgroundColor: UIColor?, highlightedBackgroundColor: UIColor?,
          selectedBackgroundColor: UIColor?) {
         self.selectionAnimationDuration = 0.2
+        self.revertToNormalAnimationDuration = 0.5
         super.init(frame: .zero)
                 
         self.configureBackgroundColor(normalBackgroundColor, for: .normal)
@@ -33,6 +34,7 @@ class HighlightableBackgroundView: UIView {
         didSet {
             if visualState == oldValue { return }
             
+            print(oldValue, "-->", visualState)
             switch visualState {
             case .normal:
                 // remove highlight gradually
@@ -78,6 +80,14 @@ class HighlightableBackgroundView: UIView {
         if let previous = self.previousVisualState {
             assert(previous != .highlighted)
             self.visualState = previous
+        }
+    }
+    
+    func toggleSelection() {
+        if self.visualState != .selected {
+            self.visualState = .selected
+        } else {
+            self.visualState = .normal
         }
     }
     
