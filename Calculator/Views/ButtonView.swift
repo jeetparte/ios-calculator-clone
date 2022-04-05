@@ -51,7 +51,7 @@ class ButtonView: HighlightableBackgroundView {
         // For selectable buttons, we want to avoid that because
         // we want to go smoothly from normal --> highlighted --> selected (and the other way round)
         // without regressions.
-        return (button.id == .changeButtons) || (button.currentId.isBinaryOperator && button.previousVisualState == .normal)
+        return (self.id == .changeButtons) || (self.currentId.isBinaryOperator && self.previousVisualState == .normal)
     }
     
     var shouldShowAlternate: Bool = false {
