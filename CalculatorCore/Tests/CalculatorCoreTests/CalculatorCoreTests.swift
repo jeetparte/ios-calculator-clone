@@ -530,21 +530,37 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.displayValue!, 26)
     }
     
-    // MARK: - Percent sign
-    func testPercentage() {
-        // The percentage operation applies when input after the current operand
-        self.inputAnyMethod("100.0")
-        calculator.inputOperation(.percentage)
-        XCTAssertEqual(calculator.displayValue!, 1.00)
+    // MARK: - Unary operations
+    // Note: Most of the tests in this section check only one of the unary operations.
+    // Since the code for unary operations has a single representation (i.e. is DRY),
+    // we consider the others tested as well.
+    
+    func testUnaryOperation() {
+        // The unary operation applies when input after the current operand
         
-        calculator.inputOperation(.multiply)
-        self.inputAnyMethod("8.0")
-        calculator.inputOperation(.percentage)
-        XCTAssertEqual(calculator.displayValue!, 0.08)
+        let tests: [(operation: SingleStepCalculator.UnaryOperation, input1: String, expected1: Double, input2: String, expected2: Double)] = [
+            (.percentage, "100.0", 1.00, "8.0", 0.08),
+            (.square, "2.5", 6.25, "-3.0", 9.0)
+        ]
+        
+        for test in tests {
+            self.inputAnyMethod(test.input1)
+            calculator.inputOperation(test.operation)
+            XCTAssertEqual(calculator.displayValue!, test.expected1)
+            
+            calculator.inputOperation(.multiply)
+            self.inputAnyMethod(test.input2)
+            calculator.inputOperation(test.operation)
+            XCTAssertEqual(calculator.displayValue!, test.expected2)
+            
+            XCTAssertEqual(calculator.evaluate(), test.expected1 * test.expected2)
+            
+            self.newCalculator()
+        }
     }
     
-    func testRepeatedPercentage() {
-        // Check repeated application of percentage
+    func testRepeatedUnaryOperation() {
+        // Check repeated application of a unary operation
         self.inputAnyMethod("1000000.0") // 1e6
         calculator.inputOperation(.percentage)
         XCTAssertEqual(calculator.displayValue!, 1e4)
@@ -563,8 +579,8 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.displayValue!, 8)
     }
     
-    func testPercentageNonApply() {
-        // The percentage operation does not apply when input before an operand
+    func testUnaryOperationNonApply() {
+        // The unary operation does not apply when input before an operand
         
         // First operand
         calculator.inputOperation(.percentage)
@@ -582,8 +598,8 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.evaluate(), 108.0)
     }
     
-    func testInputAfterPercentage() {
-        // Input after percentage application should override the result.
+    func testInputAfterUnaryOperation() {
+        // Input after application of a unary operation should override the result.
         
         // First operand
         self.inputAnyMethod("8")
