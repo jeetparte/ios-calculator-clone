@@ -46,8 +46,15 @@ class ButtonView: HighlightableBackgroundView {
         }
     }
     
+    var shouldPreserveHighlight: Bool {
+        // Removing a highlight takes the button to the previous visual state.
+        // For selectable buttons, we want to avoid that because
+        // we want to go smoothly from normal --> highlighted --> selected (and the other way round)
+        // without regressions.
+        return (button.id == .changeButtons) || (button.currentId.isBinaryOperator && button.previousVisualState == .normal)
+    }
+    
     var shouldShowAlternate: Bool = false {
-
         didSet {
             if shouldShowAlternate == oldValue { return }
             // Reject if there's no alternate ID
@@ -81,7 +88,7 @@ class ButtonView: HighlightableBackgroundView {
         // update foreground whenever an orientation change notification is posted
         NotificationCenter.default.addObserver(self, selector: #selector(self.updateForegroundText(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
         
-        if self.id.isBinaryOperator || (self.alternateId?.isBinaryOperator == true) {
+        if self.buttonConfiguration.hasBinaryOperatorKey {
             NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeBinaryOperation(_:)), name: SharedConstants.selectedBinaryOperationChanged, object: nil)
         }
         

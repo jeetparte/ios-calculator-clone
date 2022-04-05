@@ -16,6 +16,10 @@ struct ButtonConfiguration {
     var color: ButtonColor
     let textType: ButtonTextType
     
+    var hasBinaryOperatorKey: Bool {
+        return id.isBinaryOperator || alternateID?.isBinaryOperator == true
+    }
+    
     init(id: ButtonID, text: String, alternateID: ButtonID? = nil, alternateText: String? = nil, color: ButtonColor, textType: ButtonTextType = .label) {
         self.id = id
         self.text = text

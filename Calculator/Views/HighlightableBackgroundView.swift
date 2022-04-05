@@ -83,10 +83,14 @@ class HighlightableBackgroundView: UIView {
     }
     
     func toggleSelection() {
-        if self.visualState != .selected {
+        assert(self.visualState == .highlighted)
+        switch self.previousVisualState {
+        case .normal:
             self.visualState = .selected
-        } else {
+        case .selected:
             self.visualState = .normal
+        default:
+            break
         }
     }
     
