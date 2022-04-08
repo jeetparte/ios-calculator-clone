@@ -538,7 +538,7 @@ final class CalculatorCoreTests: XCTestCase {
     func testUnaryOperation() {
         // The unary operation applies when input after the current operand
         
-        let tests: [(operation: SingleStepCalculator.UnaryOperation, input1: String, expected1: Double, input2: String, expected2: Double)] = [
+        let tests: [(operation: UnaryOperation, input1: String, expected1: Double, input2: String, expected2: Double)] = [
             (.percentage, "100.0", 1.00, "8.0", 0.08),
             (.square, "2.5", 6.25, "-3.0", 9.0)
         ]

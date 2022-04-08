@@ -148,12 +148,13 @@ public class SingleStepCalculator {
     }
     
     public func inputOperation(_ op: UnaryOperation) {
-        switch op {
-        case .signChange:
+        if op == .signChange {
             self.doSignChange()
-        case .percentage:
-            self.doPercentage()
+            return
         }
+                
+        let function = unaryFunctions[op]!
+        try! self.doUnary(function) //FIXME: propagate/communicate this error to the app somehow
     }
     
     @discardableResult
@@ -236,29 +237,8 @@ public class SingleStepCalculator {
         self.clearOnNextInput = false
         
         // TODO: what about memory register?
-    }
+    }        
     
-    public enum BinaryOperation: CaseIterable {
-        case multiply
-        case divide
-        case add
-        case subtract
-        case power
-        case powerReverseOperands // * should we implement this?
-        case nthRoot
-        case logToTheBase
-    }
-    
-    public enum UnaryOperation {
-        case signChange
-        case percentage
-    }
-    
-    public enum MemoryFunction {
-        case clear
-        case add
-        case subtract
-    }
     // MARK: -
     
     private func recordInput() {
@@ -298,19 +278,23 @@ public class SingleStepCalculator {
         self[keyPath: currentOperand]?.negate()
     }
     
-    private func doPercentage() {
+    private func doUnary(_ transform: (Double) -> Double?) throws {
         guard let currentValue = self[keyPath: currentOperand]?.value else { return }
         
         if currentOperand == \.firstOperand {
             // do not change first operand after the operator has been input
             guard operation == nil else { return }
-            apply()
+            try apply()
         } else if currentOperand == \.secondOperand {
-            apply()
+            try apply()
         }
-        
-        func apply() {
-            self[keyPath: currentOperand]!.setValue(currentValue / 100.0)
+                
+        func apply() throws {
+            guard let newValue = transform(currentValue) else {
+                throw CalculatorError.calculationError
+            }
+            
+            self[keyPath: currentOperand]!.setValue(newValue)
             self.clearOnNextInput = true
         }
     }

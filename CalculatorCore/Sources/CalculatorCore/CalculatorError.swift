@@ -10,4 +10,5 @@ import Foundation
 public enum CalculatorError: Error {
     case invalidInput
     case invalidOperation
+    case calculationError
 }
