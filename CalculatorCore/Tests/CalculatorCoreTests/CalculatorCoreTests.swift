@@ -619,6 +619,38 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.evaluate(), 123.0 * 456.0)
     }
     
+    func testFactorial() {
+        let tests: [(input:String, expected: Double)] = [
+            ("0", 1),
+            ("1", 1),
+            ("3", 6),
+            ("4", 24),
+            ("5", 120),
+            ("6", 720),
+            ("10", 36_28_800),
+            ("20", 2.432902008E18)
+        ]
+        
+        for test in tests {
+            self.inputAnyMethod(test.input)
+            calculator.inputOperation(.factorial)
+            let result = calculator.evaluate()
+            XCTAssert(result.isApproximatelyEqual(to: test.expected))
+            self.newCalculator()
+        }
+    }
+    func testFactorialLargeNumber() {
+        // The factorial of numbers too large to fit a Double evaluate to Double.infinity.
+        self.inputAnyMethod("171")
+        calculator.inputOperation(.factorial)
+        XCTAssertEqual(calculator.evaluate(), .infinity)
+        
+        self.newCalculator()
+        self.inputAnyMethod("1000000")
+        calculator.inputOperation(.factorial)
+        XCTAssertEqual(calculator.evaluate(), .infinity)
+    }    
+    
     // MARK: Sign change
     func testSignChange() {
         // A sign change operation flips the sign of the value it operates on.

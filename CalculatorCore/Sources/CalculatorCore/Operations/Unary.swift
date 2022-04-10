@@ -68,10 +68,18 @@ internal var unaryFunctions: [UnaryOperation: UnaryFunction] = [
 
 // Just a basic version - no memoization / performance optimization
 fileprivate func factorial(_ n: Int) -> Double {
-    assert(n >= 0)
-    if n == 0 {
-        return 1
+    func fact(_ n: Int, accumulator: Double = 1) -> Double {
+        if accumulator == .infinity {
+            return .infinity
+        }
+        if n <= 1 {
+            return accumulator
+        }
+        let acc = Double(n) * accumulator
+        let newN = n - 1
+        return fact(newN, accumulator: acc)
     }
-    let product = Double(n) * factorial(n - 1)
-    return product
+    
+    assert(n >= 0)
+    return fact(n)
 }
