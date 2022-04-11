@@ -33,7 +33,7 @@ class HighlightableBackgroundView: UIView {
         didSet {
             if visualState == oldValue { return }
             
-            print(oldValue, "-->", visualState)
+//            print(oldValue, "-->", visualState)
             switch visualState {
             case .normal:
                 // remove highlight gradually

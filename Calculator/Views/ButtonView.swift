@@ -92,7 +92,7 @@ class ButtonView: HighlightableBackgroundView {
             NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeBinaryOperation(_:)), name: SharedConstants.selectedBinaryOperationChanged, object: nil)
         }
         
-        if self.id == .mRecall {
+        if self.id == .memoryRecall {
             self.selectionAnimationDuration = 0.5
             
             NotificationCenter.default.addObserver(self, selector: #selector(self.memoryRecallSelectionStateChanged(_:)), name: SharedConstants.shouldChangeMemoryRecallButtonSelectionState, object: nil)

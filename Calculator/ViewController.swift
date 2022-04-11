@@ -89,19 +89,15 @@ class ViewController: UIViewController {
             calculator.insertDecimalPoint()
         case .clear:
             calculator.allClear()
-        case .signChange:
-            calculator.inputOperation(.signChange)
-        case .percentage:
-            calculator.inputOperation(.percentage)
-        case let x where x.isBinaryOperator:
-            let operation = binaryOperationsMap[x]!
-            calculator.inputOperation(operation)
+        case .binary(let binaryOperation):
+            calculator.inputOperation(binaryOperation)
+        case .unary(let unaryOperation):
+            calculator.inputOperation(unaryOperation)
         case .equals:
             calculator.evaluate()
-        case .mAdd, .mSubtract, .mClear:
-            let function = memoryOperationsMap[buttonView.currentId]!
-            calculator.performMemoryFunction(function)
-        case .mRecall:
+        case .memoryFunction(let memoryFunction):
+            calculator.performMemoryFunction(memoryFunction)
+        case .memoryRecall:
             calculator.recallMemory()
         case .changeButtons:
             self.changeButtons()
@@ -122,10 +118,11 @@ class ViewController: UIViewController {
     }
     
     private func updateMemoryRecallButtonSelectionState(_ id: ButtonID) {
-        if id == .mClear {
+        guard case let .memoryFunction(f) = id else { return }
+        if f == .clear {
             // remove background highlight
             postNotification(shouldSelect: false)
-        } else if id == .mAdd || id == .mSubtract {
+        } else if f == .add || f == .subtract {
             // activate background highlight
             postNotification(shouldSelect: true)
         }
@@ -157,28 +154,9 @@ class ViewController: UIViewController {
             guard let operation = calculator.operation else { return nil }
             // Ideally, we'd want a bi-directional map here.
             // But this is ok for now.
-            return binaryOperationsMap
-                .first { $0.value == operation }!
-                .key
+            return .binary(operation)
         }
     }
-    
-    private var binaryOperationsMap: [ButtonID: SingleStepCalculator.BinaryOperation] = [
-        .division: .divide,
-        .multiplication: .multiply,
-        .subtraction: .subtract,
-        .addition: .add,
-        .power: .power,
-        .powerReverseOperands: .powerReverseOperands,
-        .nthRoot: .nthRoot,
-        .logToTheBase: .logToTheBase
-    ]
-    
-    private var memoryOperationsMap: [ButtonID: SingleStepCalculator.MemoryFunction] = [
-        .mAdd: .add,
-        .mSubtract: .subtract,
-        .mClear: .clear
-    ]
     
     // MARK: - Private methods
     private func setupConstraints(bezelDevice: Bool = false) {

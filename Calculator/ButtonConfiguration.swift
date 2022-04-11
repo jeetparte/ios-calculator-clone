@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import CalculatorCore
 
 struct ButtonConfiguration {
     let id: ButtonID
@@ -54,68 +55,24 @@ enum ButtonColor {
 }
 
 enum ButtonID: Hashable {
-
-    static let binaryOperators: [Self] = [
-        .division, .multiplication, .subtraction, .addition,
-        .power, .powerReverseOperands,
-        .nthRoot, .logToTheBase
-    ]
     var isBinaryOperator: Bool {
-        return Self.binaryOperators.contains(self)
+        if case .binary(_) = self { return true }
+        return false
     }
     
-    // MARK: - Primary buttons (standard calculator)
     case digit(Int)
     case decimalPoint
     
     case clear
-    case signChange
-    case percentage
-    case division
-    case multiplication
-    case subtraction
-    case addition
     case equals
+    
+    case binary(CalculatorCore.BinaryOperation)
+    case unary(CalculatorCore.UnaryOperation)
+    case specialInput(CalculatorCore.SpecialInput)
+    case memoryFunction(CalculatorCore.MemoryFunction)
+    case memoryRecall
         
-    // MARK: - Secondary buttons (scientific calculator)
     case leftParanthesis
     case rightParanthesis
-    // Memory functions
-    case mClear
-    case mAdd
-    case mSubtract
-    case mRecall
-    
     case changeButtons // the button marked "2nd"
-    
-    // Exponentiation functions
-    // a. positive exponents
-    case square
-    case cube
-    case power
-    case exponential /* e^x */, powerReverseOperands
-    case powerOfTen, powerOfTwo
-    // b. negative exponents
-    case reciprocal // 1/x
-    case squareRoot
-    case cubeRoot
-    case nthRoot
-    
-    // Logarithmic functions
-    case naturalLog, logToTheBase
-    case commonLog, binaryLog
-    
-    case factorial
-    
-    // Trigonometric functions
-    case sine, cosine, tangent
-    case arcsine, arccosine, arctangent
-    case hyperbolicSine, hyperbolicCosine, hyperbolicTangent
-    case inverseHyperbolicSine, inverseHyperbolicCosine, inverseHyperbolicTangent
-    
-    case eulersConstant
-    case enterExponent // scientific notation
-    case toggleDegreesOrRadians
-    case pi
-    case randomNumber
 }
