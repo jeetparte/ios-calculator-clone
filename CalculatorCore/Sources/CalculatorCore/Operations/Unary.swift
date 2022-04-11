@@ -34,8 +34,8 @@ public enum UnaryOperation {
     case inverseHyperbolicSine, inverseHyperbolicCosine, inverseHyperbolicTangent
 }
 
-internal typealias UnaryFunction = (Double) -> Double?
-internal var unaryFunctions: [UnaryOperation: UnaryFunction] = [
+typealias UnaryFunction = (Double) -> Double?
+let unaryFunctions: [UnaryOperation: UnaryFunction] = [
     .percentage: {$0 / 100.0},
     .square: {.pow($0, 2)},
     .cube: {.pow($0, 3)},

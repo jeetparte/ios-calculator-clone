@@ -82,32 +82,38 @@ class ViewController: UIViewController {
         guard let buttonView = notification.object as? ButtonView else { return }
 //        print("handling tap for button \(buttonView.currentId)")
         
-        switch buttonView.currentId {
-        case .digit(let n):
-            try! calculator.inputDigit(n)
-        case .decimalPoint:
-            calculator.insertDecimalPoint()
-        case .clear:
-            calculator.allClear()
-        case .binary(let binaryOperation):
-            calculator.inputOperation(binaryOperation)
-        case .unary(let unaryOperation):
-            calculator.inputOperation(unaryOperation)
-        case .equals:
-            calculator.evaluate()
-        case .memoryFunction(let memoryFunction):
-            calculator.performMemoryFunction(memoryFunction)
-        case .memoryRecall:
-            calculator.recallMemory()
-        case .changeButtons:
-            self.changeButtons()
-            buttonView.toggleSelection()
-        default:
-            break
+        do {
+            switch buttonView.currentId {
+            case .digit(let n):
+                try! calculator.inputDigit(n)
+            case .decimalPoint:
+                calculator.insertDecimalPoint()
+            case .clear:
+                calculator.allClear()
+            case .binary(let binaryOperation):
+                try calculator.inputOperation(binaryOperation)
+            case .unary(let unaryOperation):
+                calculator.inputOperation(unaryOperation)
+            case .equals:
+                try calculator.evaluate()
+            case .memoryFunction(let memoryFunction):
+                calculator.performMemoryFunction(memoryFunction)
+            case .memoryRecall:
+                calculator.recallMemory()
+            case .changeButtons:
+                self.changeButtons()
+                buttonView.toggleSelection()
+            default:
+                break
+            }
+            displayNumber = calculator.displayValue ?? -1.0
+            self.updateCurrentOperation(buttonView.currentId)
+            self.updateMemoryRecallButtonSelectionState(buttonView.currentId)
+        } catch _ as CalculatorError {
+            displayLabel.text = "Error"
+        } catch {
+            displayLabel.text = "Unknown error"
         }
-        displayNumber = calculator.displayValue ?? -1.0
-        self.updateCurrentOperation(buttonView.currentId)
-        self.updateMemoryRecallButtonSelectionState(buttonView.currentId)
     }
     
     private func changeButtons() {

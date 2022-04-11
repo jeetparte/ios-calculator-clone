@@ -32,7 +32,6 @@ public class SingleStepCalculator {
         }
     }
     
-    // TODO: - rename to binaryOperation?
     public var operation: BinaryOperation? {
         didSet {
             self.recordInput()
@@ -128,7 +127,7 @@ public class SingleStepCalculator {
         self[keyPath: currentOperand] = CalculatorNumber(n)
     }
     
-    public func inputOperation(_ op: BinaryOperation) {
+    public func inputOperation(_ op: BinaryOperation) throws {
         if self.operation == nil {
             self.operation = op
         } else {
@@ -141,7 +140,7 @@ public class SingleStepCalculator {
             // if 2nd op. is specified, execute the  previous operation,
             // then queue this operation
             else {
-                self.evaluate()
+                try self.evaluate()
                 self.operation = op
             }
         }
@@ -158,7 +157,7 @@ public class SingleStepCalculator {
     }
     
     @discardableResult
-    public func evaluate() -> Double {
+    public func evaluate() throws -> Double {
         defer {
             // IMPORTANT: re-evaluate defer statement usage if we do error handling
             clearOnNextInput = true
@@ -171,26 +170,17 @@ public class SingleStepCalculator {
             return self.firstOperand!.value
         }
         
-        switch operation {
-        case .multiply:
-            firstOperand *= secondOperand
-        case .divide:
-            firstOperand /= secondOperand
-        case .add:
-            firstOperand += secondOperand
-        case .subtract:
-            firstOperand -= secondOperand
-        default:
-            // TODO: handle other binary operations
-            break
-        }
+        // apply operation
+        let function = binaryFunctions[operation]!
+        guard let result = function(self.firstOperand.value, secondOperand.value) else { throw CalculatorError.calculationError }
+        self.firstOperand = CalculatorNumber(result)
         
         self.secondOperand = nil
         self.operation = nil
         
         return self.firstOperand!.value
     }
-    
+        
     /// - Returns: The value of the memory register after performing the given memory function.
     public func performMemoryFunction(_ f: MemoryFunction) {
         switch f {
