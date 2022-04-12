@@ -40,8 +40,8 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
-    private func getDisplayValue() -> Double {
-        return CalculatorCoreTests.which.isEven ? calculator.evaluate() : calculator.displayValue!
+    private func getDisplayValue() throws -> Double {
+        return CalculatorCoreTests.which.isEven ? try calculator.evaluate() : calculator.displayValue!
     }
     
     enum InputMethod: Int {
@@ -78,13 +78,13 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
-    private func execute(_ tests: [XOperatorYResult], assertBlock: AssertBlock? = nil) {
+    private func execute(_ tests: [XOperatorYResult], assertBlock: AssertBlock? = nil) throws {
         for test in tests {
             self.inputAnyMethod(test.a)
-            calculator.inputOperation(test.op)
+            try calculator.inputOperation(test.op)
             self.inputAnyMethod(test.b)
             
-            let actualResult = calculator.evaluate()
+            let actualResult = try calculator.evaluate()
             if assertBlock != nil {
                 assertBlock!(actualResult, test.expected)
             } else {
@@ -103,16 +103,16 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     //MARK: - Test utility methods
-    func testInputMethods() {
+    func testInputMethods() throws {
         // Test that different input methods are identical
         let numbers: [String] = ["12", "-23", "456", "9999", "0", "-9999", "6", "456",
                                  "12.0", "-23.22", "456.777", "9999.11", "0.0", "0.01", "-9999.456", "6.5", "456.123"]
         for number in numbers {
             self.input(number, inputMethod: .digit)
-            let digitInput = getDisplayValue()
+            let digitInput = try getDisplayValue()
             self.newCalculator()
             self.input(number, inputMethod: .number)
-            let numberInput = getDisplayValue()
+            let numberInput = try getDisplayValue()
             XCTAssertEqual(digitInput, numberInput)
             self.newCalculator()
         }
@@ -128,7 +128,7 @@ final class CalculatorCoreTests: XCTestCase {
         for number in (numbers + decimalNumbers) {
             self.inputAnyMethod(number)
             XCTAssertEqual(calculator.displayValue!, Double(number)!)
-            XCTAssertEqual(calculator.evaluate(), Double(number)!)
+            XCTAssertEqual(try calculator.evaluate(), Double(number)!)
         }
     }
     
@@ -170,14 +170,14 @@ final class CalculatorCoreTests: XCTestCase {
         try calculator.inputDigits(1, 2, 3)
         calculator.insertDecimalPoint()
         try calculator.inputDigits(0, 4, 5, 6)
-        XCTAssertEqual(self.getDisplayValue(), 123.0456)
+        XCTAssertEqual(try self.getDisplayValue(), 123.0456)
         
         // More fractional digits
         self.newCalculator()
         try calculator.inputDigits(1, 2, 3)
         calculator.insertDecimalPoint()
         try calculator.inputDigits(0, 0, 4, 5, 6, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
-        XCTAssertEqual(self.getDisplayValue(), 123.004569876543210)
+        XCTAssertEqual(try self.getDisplayValue(), 123.004569876543210)
         
         
         // Negative number
@@ -187,7 +187,7 @@ final class CalculatorCoreTests: XCTestCase {
         try calculator.inputDigits(1, 2, 3)
         calculator.insertDecimalPoint()
         try calculator.inputDigits(0, 4, 5, 6)
-        XCTAssertEqual(self.getDisplayValue(), -123.0456)
+        XCTAssertEqual(try self.getDisplayValue(), -123.0456)
         
         // Negative number - More fractional digits
         self.newCalculator()
@@ -195,7 +195,7 @@ final class CalculatorCoreTests: XCTestCase {
         try calculator.inputDigits(1, 2, 3)
         calculator.insertDecimalPoint()
         try calculator.inputDigits(0, 0, 4, 5, 6, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
-        XCTAssertEqual(self.getDisplayValue(), -123.004569876543210)
+        XCTAssertEqual(try self.getDisplayValue(), -123.004569876543210)
         
     }
     
@@ -207,10 +207,10 @@ final class CalculatorCoreTests: XCTestCase {
     func testDecimalInsertionAfterEvaluation() throws {
         // Insertion of decimal point after evaluation (i.e. hitting '=') should override the result.
         self.inputAnyMethod("-12.34")
-        calculator.evaluate()
+        try calculator.evaluate()
         calculator.insertDecimalPoint()
         try calculator.inputDigit(1)
-        XCTAssertEqual(self.getDisplayValue(), 0.1)
+        XCTAssertEqual(try self.getDisplayValue(), 0.1)
     }
     
     func testDecimalInsertionAfterPercentage() throws {
@@ -224,14 +224,14 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.displayValue!, 0.5)
         
         // Second operand
-        calculator.inputOperation(.add)
+        try calculator.inputOperation(.add)
         self.inputAnyMethod("9")
         calculator.inputOperation(.percentage)
         calculator.insertDecimalPoint()
         try calculator.inputDigits(1,2,5)
         XCTAssertEqual(calculator.displayValue, 0.125)
         
-        XCTAssertEqual(calculator.evaluate(), 0.625)
+        XCTAssertEqual(try calculator.evaluate(), 0.625)
     }
     // MARK: Memory functions
     func testInitialMemory() {
@@ -260,7 +260,7 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.recallMemory(), -4.0)
     }
     
-    func testMemoryAdd() {
+    func testMemoryAdd() throws {
         // The memory-add operation adds the value of the current operand to the memory register.
         
         // First operand
@@ -271,13 +271,13 @@ final class CalculatorCoreTests: XCTestCase {
         // Second operand
         self.setUp()
         self.inputAnyMethod("50.23")
-        calculator.inputOperation(.divide)
+        try calculator.inputOperation(.divide)
         self.inputAnyMethod("-12.2")
         calculator.performMemoryFunction(.add)
         XCTAssertEqual(calculator.recallMemory(), -12.2)
     }
     
-    func testMemorySubtract() {
+    func testMemorySubtract() throws {
         // The memory-subtract operation subtracts the value of the current operand from the memory register.
         
         // First operand
@@ -288,7 +288,7 @@ final class CalculatorCoreTests: XCTestCase {
         // Second operand
         self.setUp()
         self.inputAnyMethod("50.23")
-        calculator.inputOperation(.divide)
+        try calculator.inputOperation(.divide)
         self.inputAnyMethod("-12.2")
         calculator.performMemoryFunction(.subtract)
         XCTAssertEqual(calculator.recallMemory(), 12.2)
@@ -306,22 +306,22 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.recallMemory(), 0.0)
     }
     
-    func testMemoryFunctionsClearNextInput() {
+    func testMemoryFunctionsClearNextInput() throws {
         // If an operand is added (via memory-add or memory-subtract operations) to memory, subsequent input for the same operand should override the previous value.
         
         self.inputAnyMethod("50.23")
         calculator.performMemoryFunction(.add)
         self.inputAnyMethod("1")
-        XCTAssertEqual(self.getDisplayValue(), 1)
+        XCTAssertEqual(try self.getDisplayValue(), 1)
         
-        calculator.inputOperation(.multiply)
+        try calculator.inputOperation(.multiply)
         self.inputAnyMethod("2")
         calculator.performMemoryFunction(.subtract)
         self.inputAnyMethod("4")
         XCTAssertEqual(calculator.displayValue!, 4.0)
     }
     
-    func testMemoryRecallReplacesOperand() {
+    func testMemoryRecallReplacesOperand() throws {
         // The memory-recall operation should replace the current operand with the value of the memory register
         
         // First modify the memory register
@@ -333,31 +333,31 @@ final class CalculatorCoreTests: XCTestCase {
         self.inputAnyMethod("1")
         calculator.recallMemory()
         XCTAssertEqual(calculator.displayValue!, 50.23)
-        calculator.inputOperation(.multiply)
+        try calculator.inputOperation(.multiply)
         self.inputAnyMethod("2")
-        XCTAssertEqual(calculator.evaluate(), 100.46)
+        XCTAssertEqual(try calculator.evaluate(), 100.46)
         
         // Replace second operand
         calculator.allClear() // this should not affect the memory register
         self.inputAnyMethod("3")
-        calculator.inputOperation(.add)
+        try calculator.inputOperation(.add)
         self.inputAnyMethod("4")
         calculator.recallMemory()
         XCTAssertEqual(calculator.displayValue!, 50.23)
-        XCTAssertEqual(calculator.evaluate(), 53.23)
+        XCTAssertEqual(try calculator.evaluate(), 53.23)
         
     }
     
-    func testMemoryRecallAfterOperator() {
+    func testMemoryRecallAfterOperator() throws {
         // If memory is recalled after entering an operator, the memory value should replace the second operand, not the first
         
         self.inputAnyMethod("44")
         calculator.performMemoryFunction(.add)
         
         self.inputAnyMethod("2")
-        calculator.inputOperation(.add)
+        try calculator.inputOperation(.add)
         calculator.recallMemory()
-        XCTAssertEqual(calculator.evaluate(), 46)
+        XCTAssertEqual(try calculator.evaluate(), 46)
     }
 
     // MARK: Evaluation
@@ -368,7 +368,7 @@ final class CalculatorCoreTests: XCTestCase {
         
         for testNumber in testNumbers {
             self.inputAnyMethod(testNumber)
-            XCTAssertEqual(Double(testNumber)!, calculator.evaluate())
+            XCTAssertEqual(Double(testNumber)!, try calculator.evaluate())
         }
     }
     
@@ -391,12 +391,12 @@ final class CalculatorCoreTests: XCTestCase {
         
         for test in tests {
             self.inputAnyMethod(test.a)
-            calculator.inputOperation(test.op)
-            let result1 = calculator.evaluate()
+            try calculator.inputOperation(test.op)
+            let result1 = try calculator.evaluate()
             XCTAssertEqual(result1, Double(test.a))
             
             self.inputAnyMethod(test.b)
-            let result2 = calculator.evaluate()
+            let result2 = try calculator.evaluate()
             let expected = Double(test.b)!
             XCTAssertTrue(result2.isApproximatelyEqual(to: expected),
                           "Actual: \(result2), Expected: \(expected)")
@@ -412,9 +412,9 @@ final class CalculatorCoreTests: XCTestCase {
         // trigger a simple evaluation
         // 1 + 2 = 3
         try calculator.inputDigit(1)
-        calculator.inputOperation(.add)
+        try calculator.inputOperation(.add)
         try calculator.inputDigit(2)
-        guard calculator.evaluate() == 3.0 else {
+        guard try calculator.evaluate() == 3.0 else {
             XCTFail("Failed test-case setup.")
             return
         }
@@ -424,11 +424,11 @@ final class CalculatorCoreTests: XCTestCase {
         for input in inputs {
             self.inputAnyMethod(input)
             let expectedResult = Double(input)!
-            XCTAssertEqual(expectedResult, calculator.evaluate())
+            XCTAssertEqual(expectedResult, try calculator.evaluate())
         }
     }
     
-    func testImplicitEvaluation() {
+    func testImplicitEvaluation() throws {
         // If an operator is entered, after an evalutable expression has been entered,
         // that expression is evaluated and made the first operand for the operator just entered.
         
@@ -442,18 +442,18 @@ final class CalculatorCoreTests: XCTestCase {
         for test in tests {
             let expr = test.expression
             self.inputAnyMethod(expr.a)
-            calculator.inputOperation(expr.op)
+            try calculator.inputOperation(expr.op)
             self.inputAnyMethod(expr.b)
             
-            calculator.inputOperation(test.operator)
+            try calculator.inputOperation(test.operator)
             self.inputAnyMethod(test.rhs)
             
-            let actual = calculator.evaluate()
+            let actual = try calculator.evaluate()
             XCTAssertTrue(actual.isApproximatelyEqual(to: test.expected))
         }
     }
     
-    func testOperatorOverriding() {
+    func testOperatorOverriding() throws {
         // If an operator is entered just after the previous one,
         // it overrides it.
         
@@ -466,10 +466,10 @@ final class CalculatorCoreTests: XCTestCase {
         
         for test in tests {
             self.inputAnyMethod(test.a)
-            calculator.inputOperation(test.op1)
-            calculator.inputOperation(test.op2)
+            try calculator.inputOperation(test.op1)
+            try calculator.inputOperation(test.op2)
             self.inputAnyMethod(test.b)
-            let actual = calculator.evaluate()
+            let actual = try calculator.evaluate()
             XCTAssertTrue(actual.isApproximatelyEqual(to: test.expected))
         }
     }
@@ -481,7 +481,7 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.displayValue, 0)
     }
     
-    func testDisplayValue() {
+    func testDisplayValue() throws {
         // The display value on the calculator must change as expected after every input.
         
         let tests: [XOperatorYResult] = [
@@ -500,13 +500,13 @@ final class CalculatorCoreTests: XCTestCase {
             self.inputAnyMethod(test.a)
             XCTAssertEqual(calculator.displayValue!, a)
             // after operation input, display value = first operand
-            calculator.inputOperation(test.op)
+            try calculator.inputOperation(test.op)
             XCTAssertEqual(calculator.displayValue!, a)
             // on input after an operator, display value = second operand
             self.inputAnyMethod(test.b)
             XCTAssertEqual(calculator.displayValue!, b)
             // after evaluation, display value = operator(1st operand, 2nd operand)
-            calculator.evaluate()
+            try calculator.evaluate()
             XCTAssertTrue(calculator.displayValue!.isApproximatelyEqual(to: result))
         }
     }
@@ -522,7 +522,7 @@ final class CalculatorCoreTests: XCTestCase {
         try calculator.inputDigit(3)
         XCTAssertEqual(calculator.displayValue!, 123)
         
-        calculator.inputOperation(.add)
+        try calculator.inputOperation(.add)
         
         try calculator.inputDigit(2)
         XCTAssertEqual(calculator.displayValue!, 2)
@@ -535,7 +535,7 @@ final class CalculatorCoreTests: XCTestCase {
     // Since the code for unary operations has a single representation (i.e. is DRY),
     // we consider the others tested as well.
     
-    func testUnaryOperation() {
+    func testUnaryOperation() throws {
         // The unary operation applies when input after the current operand
         
         let tests: [(operation: UnaryOperation, input1: String, expected1: Double, input2: String, expected2: Double)] = [
@@ -548,18 +548,18 @@ final class CalculatorCoreTests: XCTestCase {
             calculator.inputOperation(test.operation)
             XCTAssertEqual(calculator.displayValue!, test.expected1)
             
-            calculator.inputOperation(.multiply)
+            try calculator.inputOperation(.multiply)
             self.inputAnyMethod(test.input2)
             calculator.inputOperation(test.operation)
             XCTAssertEqual(calculator.displayValue!, test.expected2)
             
-            XCTAssertEqual(calculator.evaluate(), test.expected1 * test.expected2)
+            XCTAssertEqual(try calculator.evaluate(), test.expected1 * test.expected2)
             
             self.newCalculator()
         }
     }
     
-    func testRepeatedUnaryOperation() {
+    func testRepeatedUnaryOperation() throws {
         // Check repeated application of a unary operation
         self.inputAnyMethod("1000000.0") // 1e6
         calculator.inputOperation(.percentage)
@@ -569,7 +569,7 @@ final class CalculatorCoreTests: XCTestCase {
         calculator.inputOperation(.percentage)
         XCTAssertEqual(calculator.displayValue!, 1)
         
-        calculator.inputOperation(.multiply)
+        try calculator.inputOperation(.multiply)
         self.inputAnyMethod("8000000.0") // 8e6
         calculator.inputOperation(.percentage)
         XCTAssertEqual(calculator.displayValue!, 8e4)
@@ -579,7 +579,7 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.displayValue!, 8)
     }
     
-    func testUnaryOperationNonApply() {
+    func testUnaryOperationNonApply() throws {
         // The unary operation does not apply when input before an operand
         
         // First operand
@@ -588,38 +588,38 @@ final class CalculatorCoreTests: XCTestCase {
         XCTAssertEqual(calculator.displayValue!, 100.0)
         
         // Second operand
-        calculator.inputOperation(.add)
+        try calculator.inputOperation(.add)
         calculator.inputOperation(.percentage)
         // there's no second operand yet, but the operation shouldn't apply to first operand either
         XCTAssertEqual(calculator.displayValue!, 100.0)
         self.inputAnyMethod("8.0")
         XCTAssertEqual(calculator.displayValue!, 8.0)
         
-        XCTAssertEqual(calculator.evaluate(), 108.0)
+        XCTAssertEqual(try calculator.evaluate(), 108.0)
     }
     
-    func testInputAfterUnaryOperation() {
+    func testInputAfterUnaryOperation() throws {
         // Input after application of a unary operation should override the result.
         
         // First operand
         self.inputAnyMethod("8")
         calculator.inputOperation(.percentage)
-        XCTAssertEqual(self.getDisplayValue(), 0.08)
+        XCTAssertEqual(try self.getDisplayValue(), 0.08)
         self.inputAnyMethod("123")
-        XCTAssertEqual(self.getDisplayValue(), 123.0)
+        XCTAssertEqual(try self.getDisplayValue(), 123.0)
         
         // Second operand
-        calculator.inputOperation(.multiply)
+        try calculator.inputOperation(.multiply)
         self.inputAnyMethod("9")
         calculator.inputOperation(.percentage)
         XCTAssertEqual(calculator.displayValue!, 0.09)
         self.inputAnyMethod("456")
         XCTAssertEqual(calculator.displayValue!, 456.0)
         
-        XCTAssertEqual(calculator.evaluate(), 123.0 * 456.0)
+        XCTAssertEqual(try calculator.evaluate(), 123.0 * 456.0)
     }
     
-    func testFactorial() {
+    func testFactorial() throws {
         let tests: [(input:String, expected: Double)] = [
             ("0", 1),
             ("1", 1),
@@ -634,7 +634,7 @@ final class CalculatorCoreTests: XCTestCase {
         for test in tests {
             self.inputAnyMethod(test.input)
             calculator.inputOperation(.factorial)
-            let result = calculator.evaluate()
+            let result = try calculator.evaluate()
             XCTAssert(result.isApproximatelyEqual(to: test.expected))
             self.newCalculator()
         }
@@ -643,16 +643,16 @@ final class CalculatorCoreTests: XCTestCase {
         // The factorial of numbers too large to fit a Double evaluate to Double.infinity.
         self.inputAnyMethod("171")
         calculator.inputOperation(.factorial)
-        XCTAssertEqual(calculator.evaluate(), .infinity)
+        XCTAssertEqual(try calculator.evaluate(), .infinity)
         
         self.newCalculator()
         self.inputAnyMethod("1000000")
         calculator.inputOperation(.factorial)
-        XCTAssertEqual(calculator.evaluate(), .infinity)
+        XCTAssertEqual(try calculator.evaluate(), .infinity)
     }    
     
     // MARK: Sign change
-    func testSignChange() {
+    func testSignChange() throws {
         // A sign change operation flips the sign of the value it operates on.
         
         // signChange(a) -> -a
@@ -664,11 +664,11 @@ final class CalculatorCoreTests: XCTestCase {
         for number in numbers {
             self.inputAnyMethod(number)
             calculator.inputOperation(.signChange)
-            let negativeValue = getDisplayValue()
+            let negativeValue = try getDisplayValue()
             XCTAssertEqual(-Double(number)!, negativeValue)
             
             calculator.inputOperation(.signChange)
-            let postiveValue = getDisplayValue()
+            let postiveValue = try getDisplayValue()
             XCTAssertEqual(Double(number), postiveValue)
             
             self.newCalculator()
@@ -715,7 +715,7 @@ final class CalculatorCoreTests: XCTestCase {
             calculator.inputOperation(.signChange)
             self.inputAnyMethod(a)
             XCTAssertEqual(calculator.displayValue, -Double(a)!)
-            XCTAssertEqual(calculator.evaluate(), -Double(a)!)
+            XCTAssertEqual(try calculator.evaluate(), -Double(a)!)
             
             self.newCalculator()
         }
@@ -732,7 +732,7 @@ final class CalculatorCoreTests: XCTestCase {
             self.inputAnyMethod(a)
             calculator.inputOperation(.signChange)
             XCTAssertEqual(calculator.displayValue, -Double(a)!)
-            XCTAssertEqual(calculator.evaluate(), -Double(a)!)
+            XCTAssertEqual(try calculator.evaluate(), -Double(a)!)
             
             self.newCalculator()
         }
@@ -753,11 +753,11 @@ final class CalculatorCoreTests: XCTestCase {
         
         for test in tests {
             self.inputAnyMethod(test.a)
-            calculator.inputOperation(test.op)
+            try calculator.inputOperation(test.op)
             calculator.inputOperation(.signChange)
             self.inputAnyMethod(test.b)
             XCTAssertEqual(calculator.displayValue!, -Double(test.b)!)
-            XCTAssertEqual(calculator.evaluate(), test.expected)
+            XCTAssertEqual(try calculator.evaluate(), test.expected)
         }
     }
     
@@ -777,7 +777,7 @@ final class CalculatorCoreTests: XCTestCase {
         
         for test in tests {
             self.inputAnyMethod(test.a)
-            calculator.inputOperation(test.op)
+            try calculator.inputOperation(test.op)
             self.inputAnyMethod(test.b)
             calculator.inputOperation(.signChange)
             XCTAssertEqual(-Double(test.b)!, calculator.displayValue!)
@@ -787,20 +787,20 @@ final class CalculatorCoreTests: XCTestCase {
     }
     
     // MARK: Basic operations
-    func testAllClear() {
+    func testAllClear() throws {
         // An all-clear operation should reset the calculator to its initial state.
         
         // First, exercise the calculator
         // expression: '12 * 3 / 2.1 + signChange 7.25 * 5.33'
         self.inputAnyMethod("12")
-        calculator.inputOperation(.multiply)
+        try calculator.inputOperation(.multiply)
         self.inputAnyMethod("3")
-        calculator.inputOperation(.divide)
+        try calculator.inputOperation(.divide)
         self.inputAnyMethod("2.1")
-        calculator.inputOperation(.add)
+        try calculator.inputOperation(.add)
         calculator.inputOperation(.signChange)
         self.inputAnyMethod("7.25")
-        calculator.inputOperation(.multiply)
+        try calculator.inputOperation(.multiply)
         self.inputAnyMethod("5.33")
         
         // set up a comparison
@@ -827,7 +827,7 @@ final class CalculatorCoreTests: XCTestCase {
             ("123.0", .add, "0.456", expected: 123.456),
         ]
         
-        self.execute(tests)
+        try self.execute(tests)
     }
     
     func testRepeatedAddition() throws {
@@ -836,10 +836,10 @@ final class CalculatorCoreTests: XCTestCase {
         
         calculator.inputNumber(1)
         for i in 2...10 {
-            calculator.inputOperation(.add)
+            try calculator.inputOperation(.add)
             calculator.inputNumber(Double(i))
         }
-        let actualResult = calculator.evaluate()
+        let actualResult = try calculator.evaluate()
         XCTAssertEqual(actualResult, expectedResult)
     }
     
@@ -849,10 +849,10 @@ final class CalculatorCoreTests: XCTestCase {
         
         for i in 1...9 {
             try calculator.inputDigit(i)
-            calculator.inputOperation(.add)
+            try calculator.inputOperation(.add)
         }
         try calculator.inputDigits(1,0)
-        let actualResult = calculator.evaluate()
+        let actualResult = try calculator.evaluate()
         XCTAssertEqual(actualResult, expectedResult)
         
         // a simpler test
@@ -862,10 +862,10 @@ final class CalculatorCoreTests: XCTestCase {
             
             for i in 1...2 {
                 try calculator.inputDigit(i)
-                calculator.inputOperation(.add)
+                try calculator.inputOperation(.add)
             }
             try calculator.inputDigits(3)
-            let actualResult = calculator.evaluate()
+            let actualResult = try calculator.evaluate()
             XCTAssertEqual(actualResult, expectedResult)
         }
     }
@@ -885,10 +885,10 @@ final class CalculatorCoreTests: XCTestCase {
             ("0", .subtract, "0.0001", expected: -0.0001)
         ]
         
-        self.execute(tests)
+        try self.execute(tests)
     }
         
-    func testMultiplication() {
+    func testMultiplication() throws {
         let tests: [XOperatorYResult] = [
             ("12", .multiply, "12", expected: 144),
             ("10", .multiply, "-9", expected: -90),
@@ -903,10 +903,10 @@ final class CalculatorCoreTests: XCTestCase {
             ("0.001", .multiply, "0.0001", expected: 1e-7)
         ]
         
-        self.execute(tests)
+        try self.execute(tests)
     }
     
-    func testDivision() {
+    func testDivision() throws {
         let tests: [XOperatorYResult]  = [
             ("100", .divide, "5", expected: 20),
             ("100", .divide, "-2", expected: -50),
@@ -924,6 +924,6 @@ final class CalculatorCoreTests: XCTestCase {
             ("1000000000", .divide, "1000000000", expected: 1)
         ]
         
-        self.execute(tests)
+        try self.execute(tests)
     }
 }

@@ -60,8 +60,8 @@ class RandomTests: XCTestCase {
         }
     }
     
-    private func inputAnyBinaryOperation() {
-        calculator.inputOperation(.allCases.randomElement()!)
+    private func inputAnyBinaryOperation() throws {
+        try calculator.inputOperation(.allCases.randomElement()!)
     }
 
     // MARK: - Tests
@@ -77,12 +77,12 @@ class RandomTests: XCTestCase {
         // should evaluate to b.
         
         let a = try! self.anyInput()
-        self.inputAnyBinaryOperation()
-        let result1 = calculator.evaluate()
+        try self.inputAnyBinaryOperation()
+        let result1 = try calculator.evaluate()
         XCTAssertEqual(result1, Double(a))
         
         let b = try! self.anyInput()
-        let result2 = calculator.evaluate()
+        let result2 = try calculator.evaluate()
         XCTAssertEqual(result2, Double(b))
     }
     
@@ -95,7 +95,7 @@ class RandomTests: XCTestCase {
         // i.e. 'a op b signChange' = 'a op -b'
         
         try self.anyInput()
-        self.inputAnyBinaryOperation()
+        try self.inputAnyBinaryOperation()
         let b = try self.anyInput()
         XCTAssertEqual(Double(b), calculator.displayValue!)
         
@@ -110,7 +110,7 @@ class RandomTests: XCTestCase {
         // a, op, signChange, b = a op signChange(b) ≠ signChange(a) op b
         
         let a = try self.anyInput()
-        self.inputAnyBinaryOperation()
+        try self.inputAnyBinaryOperation()
         calculator.inputOperation(.signChange)
         if a != 0 {
             XCTAssertNotEqual(calculator.displayValue!, -Double(a))
