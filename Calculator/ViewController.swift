@@ -12,6 +12,7 @@ class ViewController: UIViewController {
     let calculator = SingleStepCalculator()
     
     var displayLabel: UILabel!
+    var radiansIndicatorLabel: UILabel!
     var resultsView: UIView!
     var buttonsGridView: ButtonsGridView!
     
@@ -19,6 +20,10 @@ class ViewController: UIViewController {
     var landscapeConstraints = [NSLayoutConstraint]()
     
     var appearedOnce = false
+    
+    var currentOrientation: InterfaceOrientation? {
+        self.view.window?.windowScene?.interfaceOrientation.simpleOrientation
+    }
     
     // MARK: - View events
     override func viewDidLoad() {
@@ -59,6 +64,7 @@ class ViewController: UIViewController {
             assert(self.view.window?.windowScene != nil, "Pretty important initialization code depends on this.")
             if let orientation = self.view.window?.windowScene?.interfaceOrientation.simpleOrientation {
                 self.activateConstraints(for: orientation)
+                self.toggleRadiansIndicatorVisibility(for: orientation, isInRadiansMode: self.isInRadiansMode)
             }
         }
     }
@@ -94,6 +100,10 @@ class ViewController: UIViewController {
                 try calculator.inputOperation(binaryOperation)
             case .unary(let unaryOperation):
                 calculator.inputOperation(unaryOperation)
+            case .specialInput(let specialInput):
+                calculator.input(specialInput)
+            case .configuration(let configuration):
+                calculator.input(configuration)
             case .equals:
                 try calculator.evaluate()
             case .memoryFunction(let memoryFunction):
@@ -109,6 +119,7 @@ class ViewController: UIViewController {
             displayNumber = calculator.displayValue ?? -1.0
             self.updateCurrentOperation(buttonView.currentId)
             self.updateMemoryRecallButtonSelectionState(buttonView.currentId)
+            self.updateTrignometryInputMode(buttonView.currentId)
         } catch _ as CalculatorError {
             displayLabel.text = "Error"
         } catch {
@@ -120,6 +131,23 @@ class ViewController: UIViewController {
         let candidates = buttonsGridView.allScientificButtons.flatMap {$0}.compactMap { $0 as? ButtonView }
         candidates.forEach {
             $0.shouldShowAlternate.toggle()
+        }
+    }
+    
+    var isInRadiansMode: Bool {
+        return calculator.trignometryInputMode == .radians
+    }
+    
+    private func updateTrignometryInputMode(_ id: ButtonID) {
+        guard id == .configuration(.toggleDegreesOrRadians) else { return }
+        
+        if let toggleButton = buttonsGridView.viewWithTag(SharedConstants.toggleRadiansDegreesButtonViewTag) as? ButtonView {
+            let text: String = self.isInRadiansMode ? "Deg" : "Rad"
+            toggleButton.setLabelText(text)
+        }
+        
+        if let currentOrientation = self.currentOrientation {
+            self.toggleRadiansIndicatorVisibility(for: currentOrientation, isInRadiansMode: self.isInRadiansMode)
         }
     }
     
@@ -221,6 +249,35 @@ class ViewController: UIViewController {
             resultsView.topAnchor.constraint(equalTo: v.safeAreaLayoutGuide.topAnchor)
         ])
         self.setupDisplayLabel()
+        self.setupRadiansIndicatorLabel()
+    }
+    
+    private func setupRadiansIndicatorLabel() {
+        self.radiansIndicatorLabel = UILabel()
+        self.resultsView.addSubview(radiansIndicatorLabel)
+
+        self.radiansIndicatorLabel.text = "Rad"
+        self.radiansIndicatorLabel.textColor = .white
+        
+        self.radiansIndicatorLabel.isHidden = true // default
+        
+        radiansIndicatorLabel.translatesAutoresizingMaskIntoConstraints = false
+//        self.resultsView.backgroundColor = .purple.withAlphaComponent(0.5)
+        NSLayoutConstraint.activate([
+            self.radiansIndicatorLabel.leadingAnchor.constraint(equalTo: self.resultsView.leadingAnchor, constant: 16),
+            self.radiansIndicatorLabel.bottomAnchor.constraint(equalTo: self.resultsView.bottomAnchor, constant: -10)
+        ])
+    }
+    
+    private func toggleRadiansIndicatorVisibility(for orientation: InterfaceOrientation, isInRadiansMode: Bool) {
+        switch orientation {
+        case .landscape:
+            self.radiansIndicatorLabel.isHidden = !isInRadiansMode
+        case .portrait:
+            self.radiansIndicatorLabel.isHidden = true
+        case .unknown:
+            break
+        }
     }
     
     private func setupDisplayLabel() {
@@ -282,6 +339,7 @@ class ViewController: UIViewController {
             if newOrientation != previousOrientation {
                 guard let newOrientation = newOrientation else { return }
                 self.activateConstraints(for: newOrientation.simpleOrientation)
+                self.toggleRadiansIndicatorVisibility(for: newOrientation.simpleOrientation, isInRadiansMode: self.isInRadiansMode)
             }
         }
     }

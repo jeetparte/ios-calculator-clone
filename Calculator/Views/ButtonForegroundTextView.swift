@@ -66,7 +66,11 @@ class ButtonForegroundProvider {
         }        
     }
     
-    func updateText(showAlternate: Bool) {
+    func setText(_ string: String) {
+        self.label?.text = string
+    }
+    
+    func toggleText(showAlternate: Bool) {
         if showAlternate {
             self.label?.text = self.buttonConfiguration.alternateText!
             if let alternateImage = UIImage(systemName: self.buttonConfiguration.alternateText!) {

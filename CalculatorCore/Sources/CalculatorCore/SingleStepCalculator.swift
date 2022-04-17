@@ -53,6 +53,17 @@ public class SingleStepCalculator {
         return self[keyPath: currentOperand]?.value
     }
     
+    public var trignometryInputMode: TrignometryInputMode = .degrees {
+        didSet {
+            print("mode = ", self.trignometryInputMode)
+        }
+    }
+    
+    public enum TrignometryInputMode: CaseIterable {
+        case degrees
+        case radians
+    }
+    
     public init() {
     }
     
@@ -116,15 +127,23 @@ public class SingleStepCalculator {
     /// - Warning: The calculator offers two numeric input modes: numbers can either be entered digit-by-digit or
     /// as an entire number at once (i.e. as a block). Input modes are offered for flexibility and a chosen mode should be used exclusively across a particular run of using the calculator.
     public func inputNumber(_ n: Double) {
-        var n = n
-        if self.pendingSignChange {
-            assert(self[keyPath: currentOperand]?.magnitude == .zero)
-            
-            n.negate()
-            self.pendingSignChange = false
-        }
-        currentOperand = operation != nil ? \.secondOperand : \.firstOperand
-        self[keyPath: currentOperand] = CalculatorNumber(n)
+        self.setCurrentOperand(n, pendingSignChange: self.pendingSignChange)
+    }
+    
+    public func input(_ special: SpecialInput) {
+        let value: Double = {
+            switch special {
+            case .eulersConstant:
+                return .exp(1)
+            case .pi:
+                return .pi
+            case .randomNumber:
+                return Double.random(in: 0...1)
+            }
+        }()
+        
+        self.setCurrentOperand(value, pendingSignChange: self.pendingSignChange)
+        self.clearOnNextInput = true
     }
     
     public func inputOperation(_ op: BinaryOperation) throws {
@@ -152,8 +171,25 @@ public class SingleStepCalculator {
             return
         }
                 
-        let function = unaryFunctions[op]!
-        try! self.doUnary(function) //FIXME: propagate/communicate this error to the app somehow
+        if let trigFunction = trigFunctions[op] {
+            try! self.doUnary {
+                // handle degrees or radians input
+                var currentValue = $0
+                if self.trignometryInputMode == .degrees {
+                    currentValue = convertToRadians($0)
+                }
+                return trigFunction(currentValue)
+            }
+        } else {
+            let function = unaryFunctions[op]!
+            try! self.doUnary(function) //FIXME: propagate/communicate this error to the app somehow
+        }
+    }
+    
+    public func input(_ configuration: Configuration) {
+        if configuration == .toggleDegreesOrRadians {
+            self.trignometryInputMode = (self.trignometryInputMode == .radians) ? .degrees : .radians
+        }
     }
     
     @discardableResult
@@ -230,6 +266,20 @@ public class SingleStepCalculator {
     }        
     
     // MARK: -
+    
+    private func setCurrentOperand(_ value: Double, pendingSignChange: Bool) {
+        var value = value
+        if self.pendingSignChange {
+            // we should only have a non-applied sign change on 'fresh' operands
+            // i.e. sign change applied before any input
+            assert(self[keyPath: currentOperand]?.magnitude == .zero)
+            
+            value.negate()
+            self.pendingSignChange = false
+        }
+        currentOperand = operation != nil ? \.secondOperand : \.firstOperand
+        self[keyPath: currentOperand] = CalculatorNumber(value)
+    }
     
     private func recordInput() {
         self.clearOnNextInput = false

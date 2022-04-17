@@ -69,6 +69,7 @@ enum ButtonID: Hashable {
     case binary(CalculatorCore.BinaryOperation)
     case unary(CalculatorCore.UnaryOperation)
     case specialInput(CalculatorCore.SpecialInput)
+    case configuration(CalculatorCore.Configuration)
     case memoryFunction(CalculatorCore.MemoryFunction)
     case memoryRecall
         

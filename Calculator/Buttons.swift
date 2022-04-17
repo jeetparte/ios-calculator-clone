@@ -87,7 +87,7 @@ let scientificButtonConfigurations: [[ButtonConfiguration]] = [
     ],
     // Row 5
     [
-        ButtonConfiguration(id: .specialInput(.toggleDegreesOrRadians), text: "Rad" /* or 'Deg' */, color: .scientificButtonColor),
+        ButtonConfiguration(id: .configuration(.toggleDegreesOrRadians), text: "Rad" /* or 'Deg' */, color: .scientificButtonColor),
         ButtonConfiguration(id: .unary(.hyperbolicSine), text: "sinh", alternateID: .unary(.inverseHyperbolicSine), alternateText: "sinh-1", color: .scientificButtonColor),
         ButtonConfiguration(id: .unary(.hyperbolicCosine), text: "cosh", alternateID: .unary(.inverseHyperbolicCosine), alternateText: "cosh-1", color: .scientificButtonColor),
         ButtonConfiguration(id: .unary(.hyperbolicTangent), text: "tanh", alternateID: .unary(.inverseHyperbolicTangent), alternateText: "tanh-1", color: .scientificButtonColor),

@@ -20,4 +20,6 @@ struct SharedConstants {
     static let shouldChangeMemoryRecallButtonSelectionState =
     Notification.Name("shouldChangeMemoryRecallButtonSelectionState")
     static let shouldSelectMemoryRecallButton = "shouldSelectMemoryRecallButton"
+    
+    static let toggleRadiansDegreesButtonViewTag = 360
 }

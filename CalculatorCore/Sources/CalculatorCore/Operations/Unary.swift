@@ -52,7 +52,11 @@ let unaryFunctions: [UnaryOperation: UnaryFunction] = [
         guard let integer = Int(exactly: $0), integer >= 0 else { return nil }
         return factorial(integer)
     },
-    .sine: {.sin($0)}, //TODO: this is in radians, add support for degrees
+]
+
+let trigFunctions: [UnaryOperation: UnaryFunction] = [
+    // the argument is expected to be in radians
+    .sine: {.sin($0)},
     .cosine: {.cos($0)},
     .tangent: {.tan($0)},
     .arcsine: {.asin($0)},

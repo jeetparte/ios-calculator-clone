@@ -160,6 +160,47 @@ final class CalculatorCoreTests: XCTestCase {
         }
     }
     
+    func testSpecialInput() throws {
+        // Input keys on the calculator replace the current operand
+        
+        let tests = [
+            (input: SpecialInput.pi, assertion: { (actual: Double) in
+                actual.isApproximatelyEqual(to: Double.pi)
+            }),
+            (input: SpecialInput.eulersConstant, assertion: {
+                $0.isApproximatelyEqual(to: Double.exp(1))
+            }),
+            (input: SpecialInput.randomNumber, assertion: {
+                (0...1).contains($0)
+            })
+        ]
+        
+        for test in tests {
+            // first operand
+            calculator.input(test.input)
+            XCTAssert(test.assertion(try self.getDisplayValue()))
+            // second operand
+            try calculator.inputOperation(.subtract)
+            self.inputAnyMethod("-5.0")
+            calculator.input(test.input)
+            XCTAssert(test.assertion(calculator.displayValue!))
+            self.newCalculator()
+        }
+    }
+    
+    func testSpecialInputClearNextInput() throws {
+        // After special input, subsequent input for the same operand should override the previous value.
+
+        calculator.input(.eulersConstant)
+        self.inputAnyMethod("1")
+        XCTAssertEqual(try self.getDisplayValue(), 1)
+        
+        try calculator.inputOperation(.multiply)
+        calculator.input(.randomNumber)
+        self.inputAnyMethod("4")
+        XCTAssertEqual(calculator.displayValue!, 4.0)
+    }
+    
     // MARK: - Decimal insertion
     
     func testDecimalInsertionDigits() throws {

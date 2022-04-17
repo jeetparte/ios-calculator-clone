@@ -63,7 +63,7 @@ class ButtonView: HighlightableBackgroundView {
                 return
             }
             
-            foreground.updateText(showAlternate: shouldShowAlternate)
+            foreground.toggleText(showAlternate: shouldShowAlternate)
             if self.visualState == .selected {
                 self.visualState = .normal
             }
@@ -101,6 +101,10 @@ class ButtonView: HighlightableBackgroundView {
         if self.id == .changeButtons {
             self.selectionAnimationDuration = 0.5
         }
+        
+        if self.id == .configuration(.toggleDegreesOrRadians) {
+            self.tag = SharedConstants.toggleRadiansDegreesButtonViewTag
+        }
     }
     
     override func layoutSubviews() {
@@ -125,6 +129,10 @@ class ButtonView: HighlightableBackgroundView {
         foregroundView.translatesAutoresizingMaskIntoConstraints = false
         foregroundView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
         foregroundView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+    }
+    
+    func setLabelText(_ string: String) {
+        self.foreground.setText(string)
     }
     
     @objc func updateForegroundText(_ orientationChangeNotification: Notification) {

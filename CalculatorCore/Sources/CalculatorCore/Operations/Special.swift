@@ -7,9 +7,12 @@
 
 public enum SpecialInput {
     case eulersConstant
-    case toggleDegreesOrRadians // TODO: handle elsewhere
     case pi
     case randomNumber
+}
+
+public enum Configuration {
+    case toggleDegreesOrRadians
 }
 
 public enum MemoryFunction {
