@@ -39,6 +39,8 @@ Features I did not implement are:
 1. The round bracket keys.
 2. Dynamic Type support for the display result.
 3. Swipe-to-undo on the display result.
+4. Display number formatting.
+    * I had implemented this partially but wasn't satisfied and threw it away.
 
 Additionally, I implemented a simpler, single-step calculator where calculations are performed immediately and operator precedence is not taken into account.
 
