@@ -12,6 +12,7 @@ class ViewController: UIViewController {
     let calculator = SingleStepCalculator()
     
     var displayLabel: UILabel!
+    var radiansIndicatorLabel: UILabel!
     var resultsView: UIView!
     var buttonsGridView: ButtonsGridView!
     
@@ -19,6 +20,10 @@ class ViewController: UIViewController {
     var landscapeConstraints = [NSLayoutConstraint]()
     
     var appearedOnce = false
+    
+    var currentOrientation: InterfaceOrientation? {
+        self.view.window?.windowScene?.interfaceOrientation.simpleOrientation
+    }
     
     // MARK: - View events
     override func viewDidLoad() {
@@ -59,6 +64,7 @@ class ViewController: UIViewController {
             assert(self.view.window?.windowScene != nil, "Pretty important initialization code depends on this.")
             if let orientation = self.view.window?.windowScene?.interfaceOrientation.simpleOrientation {
                 self.activateConstraints(for: orientation)
+                self.toggleRadiansIndicatorVisibility(for: orientation, isInRadiansMode: self.isInRadiansMode)
             }
         }
     }
@@ -80,28 +86,84 @@ class ViewController: UIViewController {
         
     @objc func handleButtonTap(_ notification: Notification) {
         guard let buttonView = notification.object as? ButtonView else { return }
-//        print("handling tap for button \(buttonView.id)")
+//        print("handling tap for button \(buttonView.currentId)")
         
-        switch buttonView.id {
-        case .digit(let n):
-            try! calculator.inputDigit(n)
-        case .decimalPoint:
-            calculator.insertDecimalPoint()
-        case .clear:
-            calculator.allClear()
-        case .signChange:
-            calculator.inputOperation(.signChange)
-        case .percentage: break
-        case let x where x.isBinaryOperator:
-            let operation = binaryOperationsMap[x]!
-            calculator.inputOperation(operation)
-        case .equals:
-            calculator.evaluate()
-        default:
-            break
+        do {
+            switch buttonView.currentId {
+            case .digit(let n):
+                try! calculator.inputDigit(n)
+            case .decimalPoint:
+                calculator.insertDecimalPoint()
+            case .clear:
+                calculator.allClear()
+            case .binary(let binaryOperation):
+                try calculator.inputOperation(binaryOperation)
+            case .unary(let unaryOperation):
+                calculator.inputOperation(unaryOperation)
+            case .specialInput(let specialInput):
+                calculator.input(specialInput)
+            case .configuration(let configuration):
+                calculator.input(configuration)
+            case .equals:
+                try calculator.evaluate()
+            case .memoryFunction(let memoryFunction):
+                calculator.performMemoryFunction(memoryFunction)
+            case .memoryRecall:
+                calculator.recallMemory()
+            case .changeButtons:
+                self.changeButtons()
+                buttonView.toggleSelection()
+            default:
+                break
+            }
+            displayNumber = calculator.displayValue ?? -1.0
+            self.updateCurrentOperation(buttonView.currentId)
+            self.updateMemoryRecallButtonSelectionState(buttonView.currentId)
+            self.updateTrignometryInputMode(buttonView.currentId)
+        } catch _ as CalculatorError {
+            displayLabel.text = "Error"
+        } catch {
+            displayLabel.text = "Unknown error"
         }
-        displayNumber = calculator.displayValue ?? -1.0
-        self.updateCurrentOperation(buttonView.id)
+    }
+    
+    private func changeButtons() {
+        let candidates = buttonsGridView.allScientificButtons.flatMap {$0}.compactMap { $0 as? ButtonView }
+        candidates.forEach {
+            $0.shouldShowAlternate.toggle()
+        }
+    }
+    
+    var isInRadiansMode: Bool {
+        return calculator.trignometryInputMode == .radians
+    }
+    
+    private func updateTrignometryInputMode(_ id: ButtonID) {
+        guard id == .configuration(.toggleDegreesOrRadians) else { return }
+        
+        if let toggleButton = buttonsGridView.viewWithTag(SharedConstants.toggleRadiansDegreesButtonViewTag) as? ButtonView {
+            let text: String = self.isInRadiansMode ? "Deg" : "Rad"
+            toggleButton.setLabelText(text)
+        }
+        
+        if let currentOrientation = self.currentOrientation {
+            self.toggleRadiansIndicatorVisibility(for: currentOrientation, isInRadiansMode: self.isInRadiansMode)
+        }
+    }
+    
+    private func updateMemoryRecallButtonSelectionState(_ id: ButtonID) {
+        guard case let .memoryFunction(f) = id else { return }
+        if f == .clear {
+            // remove background highlight
+            postNotification(shouldSelect: false)
+        } else if f == .add || f == .subtract {
+            // activate background highlight
+            postNotification(shouldSelect: true)
+        }
+        
+        func postNotification(shouldSelect: Bool) {
+            NotificationCenter.default.post(name: SharedConstants.shouldChangeMemoryRecallButtonSelectionState, object: self, userInfo: [SharedConstants.shouldSelectMemoryRecallButton : shouldSelect])
+        }
     }
     
     private func updateCurrentOperation(_ id: ButtonID) {
@@ -126,21 +188,9 @@ class ViewController: UIViewController {
             guard let operation = calculator.operation else { return nil }
             // Ideally, we'd want a bi-directional map here.
             // But this is ok for now.
-            return binaryOperationsMap
-                .first { $0.value == operation }!
-                .key
+            return .binary(operation)
         }
     }
-    
-    private var binaryOperationsMap: [ButtonID: SingleStepCalculator.BinaryOperation] = [
-        .division: .divide,
-        .multiplication: .multiply,
-        .subtraction: .subtract,
-        .addition: .add,
-        .power: .power,
-        .powerReverseOperands: .powerReverseOperands,
-        .logToTheBase: .logToTheBase
-    ]
     
     // MARK: - Private methods
     private func setupConstraints(bezelDevice: Bool = false) {
@@ -199,6 +249,35 @@ class ViewController: UIViewController {
             resultsView.topAnchor.constraint(equalTo: v.safeAreaLayoutGuide.topAnchor)
         ])
         self.setupDisplayLabel()
+        self.setupRadiansIndicatorLabel()
+    }
+    
+    private func setupRadiansIndicatorLabel() {
+        self.radiansIndicatorLabel = UILabel()
+        self.resultsView.addSubview(radiansIndicatorLabel)
+
+        self.radiansIndicatorLabel.text = "Rad"
+        self.radiansIndicatorLabel.textColor = .white
+        
+        self.radiansIndicatorLabel.isHidden = true // default
+        
+        radiansIndicatorLabel.translatesAutoresizingMaskIntoConstraints = false
+//        self.resultsView.backgroundColor = .purple.withAlphaComponent(0.5)
+        NSLayoutConstraint.activate([
+            self.radiansIndicatorLabel.leadingAnchor.constraint(equalTo: self.resultsView.leadingAnchor, constant: 16),
+            self.radiansIndicatorLabel.bottomAnchor.constraint(equalTo: self.resultsView.bottomAnchor, constant: -10)
+        ])
+    }
+    
+    private func toggleRadiansIndicatorVisibility(for orientation: InterfaceOrientation, isInRadiansMode: Bool) {
+        switch orientation {
+        case .landscape:
+            self.radiansIndicatorLabel.isHidden = !isInRadiansMode
+        case .portrait:
+            self.radiansIndicatorLabel.isHidden = true
+        case .unknown:
+            break
+        }
     }
     
     private func setupDisplayLabel() {
@@ -260,6 +339,7 @@ class ViewController: UIViewController {
             if newOrientation != previousOrientation {
                 guard let newOrientation = newOrientation else { return }
                 self.activateConstraints(for: newOrientation.simpleOrientation)
+                self.toggleRadiansIndicatorVisibility(for: newOrientation.simpleOrientation, isInRadiansMode: self.isInRadiansMode)
             }
         }
     }

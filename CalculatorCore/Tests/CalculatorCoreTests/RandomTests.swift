@@ -30,7 +30,7 @@ class RandomTests: XCTestCase {
     @discardableResult private func inputAnyNumber(in range: ClosedRange<Int>? = nil) -> Int {
         let range = range ?? -999_999_999...999_999_999
         let number = Int.random(in: range)
-        calculator.inputNumber(number)
+        calculator.inputNumber(Double(number))
         
         return number
     }
@@ -60,8 +60,8 @@ class RandomTests: XCTestCase {
         }
     }
     
-    private func inputAnyBinaryOperation() {
-        calculator.inputOperation(.allCases.randomElement()!)
+    private func inputAnyBinaryOperation() throws {
+        try calculator.inputOperation(.allCases.randomElement()!)
     }
 
     // MARK: - Tests
@@ -77,12 +77,12 @@ class RandomTests: XCTestCase {
         // should evaluate to b.
         
         let a = try! self.anyInput()
-        self.inputAnyBinaryOperation()
-        let result1 = calculator.evaluate()
+        try self.inputAnyBinaryOperation()
+        let result1 = try calculator.evaluate()
         XCTAssertEqual(result1, Double(a))
         
         let b = try! self.anyInput()
-        let result2 = calculator.evaluate()
+        let result2 = try calculator.evaluate()
         XCTAssertEqual(result2, Double(b))
     }
     
@@ -95,7 +95,7 @@ class RandomTests: XCTestCase {
         // i.e. 'a op b signChange' = 'a op -b'
         
         try self.anyInput()
-        self.inputAnyBinaryOperation()
+        try self.inputAnyBinaryOperation()
         let b = try self.anyInput()
         XCTAssertEqual(Double(b), calculator.displayValue!)
         
@@ -103,16 +103,18 @@ class RandomTests: XCTestCase {
         XCTAssertEqual(-Double(b), calculator.displayValue!)
     }
     
-    func testSignChangeAfterBinaryOperation() throws {
+    func testSignChangeBeforeSecondOperand() throws {
         // If we trigger a sign-change operation after a binary operation (e.g. +, -, *, /),
         // the sign change should apply on the second operand, not the first.
         //
         // a, op, signChange, b = a op signChange(b) ≠ signChange(a) op b
         
         let a = try self.anyInput()
-        self.inputAnyBinaryOperation()
+        try self.inputAnyBinaryOperation()
         calculator.inputOperation(.signChange)
-        XCTAssertNotEqual(calculator.displayValue!, -Double(a))
+        if a != 0 {
+            XCTAssertNotEqual(calculator.displayValue!, -Double(a))
+        }
         let b = try self.anyInput()
         XCTAssertEqual(calculator.displayValue!, -Double(b))
     }

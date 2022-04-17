@@ -9,18 +9,15 @@ import UIKit
 
 class ButtonView: HighlightableBackgroundView {
     var buttonConfiguration: ButtonConfiguration
-    var id: ButtonID
+    private var id: ButtonID
+    private var alternateId: ButtonID?
     
-    var showsAlternateKey: Bool = false // default
-    
-    var label: UILabel!
-    var imageView: UIImageView!
-    
-    private var previousFontSize: CGFloat?
-    
-    private var normalForegroundColor: UIColor? {
-        return self.buttonConfiguration.color == .standardButtonProminent ? .black : .white
+    var currentId: ButtonID {
+        return self.shouldShowAlternate ? buttonConfiguration.alternateID! : self.id
     }
+        
+    private var previousFontSize: CGFloat?
+    private var foreground: ButtonForegroundProvider
     
     override var visualState: HighlightableBackgroundView.VisualState {
         didSet {
@@ -29,17 +26,46 @@ class ButtonView: HighlightableBackgroundView {
             // change foreground color when selected or unselected
             switch (oldValue, visualState) {
             case (_, .selected):
-                // Change foreground color to normal variant of background color
-                if let selectedTextColor = self.stateBackgroundColorMap[.normal], selectedTextColor != nil {
-                    label?.textColor = selectedTextColor!
-                    imageView?.tintColor = selectedTextColor!
+                let selectedTextColor: UIColor?
+                if self.buttonConfiguration.color == .accentColor {
+                    // Change foreground color to normal variant of background color
+                    selectedTextColor = self.stateBackgroundColorMap[.normal]!
+                } else if self.buttonConfiguration.color == .scientificButtonColor {
+                    selectedTextColor = .black
+                } else {
+                    assertionFailure("Unhandled case")
+                    return
                 }
+                foreground.setTextColor(selectedTextColor)
             case (_, .normal):
                 // Revert foreground color to previous state
-                label?.textColor = normalForegroundColor
-                imageView?.tintColor = normalForegroundColor
+                foreground.setTextColor(nil)
             default:
                 break
+            }
+        }
+    }
+    
+    var shouldPreserveHighlight: Bool {
+        // Removing a highlight takes the button to the previous visual state.
+        // For selectable buttons, we want to avoid that because
+        // we want to go smoothly from normal --> highlighted --> selected (and the other way round)
+        // without regressions.
+        return (self.id == .changeButtons) || (self.currentId.isBinaryOperator && self.previousVisualState == .normal)
+    }
+    
+    var shouldShowAlternate: Bool = false {
+        didSet {
+            if shouldShowAlternate == oldValue { return }
+            // Reject if there's no alternate ID
+            if shouldShowAlternate && self.buttonConfiguration.alternateID == nil {
+                self.shouldShowAlternate = false
+                return
+            }
+            
+            foreground.toggleText(showAlternate: shouldShowAlternate)
+            if self.visualState == .selected {
+                self.visualState = .normal
             }
         }
     }
@@ -47,29 +73,37 @@ class ButtonView: HighlightableBackgroundView {
     init(buttonConfiguration: ButtonConfiguration) {
         self.buttonConfiguration = buttonConfiguration
         self.id = buttonConfiguration.id
+        self.alternateId = buttonConfiguration.alternateID
+        self.foreground = ButtonForegroundProvider(buttonConfiguration: buttonConfiguration)
         
         // set the background for various states
         let backgroundColors = Self.getBackgroundColors(for: buttonConfiguration)
         super.init(normalBackgroundColor: backgroundColors.normal,
-                   highlightedBackgroundColor: backgroundColors.highlighted)
+                   highlightedBackgroundColor: backgroundColors.highlighted, selectedBackgroundColor: backgroundColors.selected)
                 
 //        self.layer.borderColor = UIColor.systemRed.cgColor
 //        self.layer.borderWidth = 1.0
         
-        switch buttonConfiguration.textType {
-        // TODO both of these are very similar; can we merge them?
-        case .image:
-            self.initializeImage()
-            // update image whenever an orientation change notification is posted
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updateImage(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
-        case .label:
-            self.initializeLabel()
-            // update label whenever an orientation change notification is posted
-            NotificationCenter.default.addObserver(self, selector: #selector(self.updateLabel(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
+        self.initializeForegroundText()
+        // update foreground whenever an orientation change notification is posted
+        NotificationCenter.default.addObserver(self, selector: #selector(self.updateForegroundText(_:)), name: SharedConstants.orientationChangedNotification, object: nil)
+        
+        if self.buttonConfiguration.hasBinaryOperatorKey {
+            NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeBinaryOperation(_:)), name: SharedConstants.selectedBinaryOperationChanged, object: nil)
         }
         
-        if self.id.isBinaryOperator {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.didChangeBinaryOperation(_:)), name: SharedConstants.selectedBinaryOperationChanged, object: nil)
+        if self.id == .memoryRecall {
+            self.selectionAnimationDuration = 0.5
+            
+            NotificationCenter.default.addObserver(self, selector: #selector(self.memoryRecallSelectionStateChanged(_:)), name: SharedConstants.shouldChangeMemoryRecallButtonSelectionState, object: nil)
+        }
+        
+        if self.id == .changeButtons {
+            self.selectionAnimationDuration = 0.5
+        }
+        
+        if self.id == .configuration(.toggleDegreesOrRadians) {
+            self.tag = SharedConstants.toggleRadiansDegreesButtonViewTag
         }
     }
     
@@ -89,94 +123,47 @@ class ButtonView: HighlightableBackgroundView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Label
-    private func initializeLabel() {
-        let label = UILabel()
-        self.label = label
-        self.addSubview(label)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-        label.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-        
-        label.text = self.showsAlternateKey ? self.buttonConfiguration.alternateText :  self.buttonConfiguration.text
-        label.textColor = self.normalForegroundColor
+    private func initializeForegroundText() {
+        let foregroundView = foreground.getView()
+        self.addSubview(foregroundView)
+        foregroundView.translatesAutoresizingMaskIntoConstraints = false
+        foregroundView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+        foregroundView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
     }
     
-    @objc func updateLabel(_ orientationChangeNotification: Notification) {
+    func setLabelText(_ string: String) {
+        self.foreground.setText(string)
+    }
+    
+    @objc func updateForegroundText(_ orientationChangeNotification: Notification) {
         guard let userInfo = orientationChangeNotification.userInfo,
               let newOrientation = userInfo[SharedConstants.newOrientationUserInfoKey] as?
                 InterfaceOrientation else {
                     assertionFailure(
                         "An orientation-change notification was posted without information about the new orientation. " +
-                        "Cannot decide buttons' label appearance for unknown orientation.")
+                        "Cannot decide buttons' foreground appearance for unknown orientation.")
                     return
                 }
         
         let fontSize = Self.getFontSize(for: buttonConfiguration.color, orientation: newOrientation)
         if self.previousFontSize == nil {
             // setting font for the first time
-            
-            let weight: UIFont.Weight =
-            [.standardButtonProminent, .accentColor]
-                .contains(self.buttonConfiguration.color) ? .medium : .regular
-            self.label.font = UIFont.systemFont(ofSize: fontSize, weight: weight)
+            let weight = Self.getFontWeight(for: buttonConfiguration.color)
+            foreground.setFont(size: fontSize, weight: weight)
             self.previousFontSize = fontSize
+
             return
         }
         
         guard fontSize != self.previousFontSize else { return }
         // visually, the font size changes abruptly, so we use this transition animation to smooth it out
-        UIView.transition(with: label, duration: 0.0, options: [.transitionCrossDissolve]) {
-            self.label.font = self.label.font.withSize(fontSize)
+        UIView.transition(with: foreground.getView(), duration: 0.0, options: [.transitionCrossDissolve]) { [self] in
+            foreground.updateFont(size: fontSize)
         }
         self.previousFontSize = fontSize
     }
     
-    //MARK: - Image
-    private func initializeImage() {
-        let imageView = UIImageView()
-        self.imageView = imageView
-        self.addSubview(imageView)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-        imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-                
-        imageView.image = UIImage(systemName: buttonConfiguration.text)
-        imageView.tintColor  = self.normalForegroundColor
-    }
-    
-    @objc func updateImage(_ orientationChangeNotification: Notification) {
-        guard let userInfo = orientationChangeNotification.userInfo,
-              let newOrientation = userInfo[SharedConstants.newOrientationUserInfoKey] as?
-                InterfaceOrientation else {
-                    assertionFailure(
-                        "An orientation-change notification was posted without information about the new orientation. " +
-                        "Cannot decide buttons' image appearance for unknown orientation.")
-                    return
-                }
-        
-        let fontSize = Self.getFontSize(for: buttonConfiguration.color, orientation: newOrientation)
-        if self.previousFontSize == nil {
-            // setting font for the first time
-            let weight: UIFont.Weight =
-            [.standardButtonProminent, .accentColor]
-                .contains(self.buttonConfiguration.color) ? .medium : .regular
-            self.imageView.preferredSymbolConfiguration = .init(pointSize: fontSize, weight: weight.symbolWeight(), scale: .medium)
-            self.previousFontSize = fontSize
-            return
-        }
-        
-        guard fontSize != self.previousFontSize else { return }
-        // visually, the font size changes abruptly, so we use this transition animation to smooth it out
-        UIView.transition(with: imageView, duration: 0.0, options: [.transitionCrossDissolve]) {
-            let newConfiguration = UIImage.SymbolConfiguration(pointSize: fontSize)
-            self.imageView.preferredSymbolConfiguration = self.imageView.preferredSymbolConfiguration?.applying(newConfiguration)
-        }
-        self.previousFontSize = fontSize
-    }
-    
-    // MARK: - Binary operators
+    // MARK: - Special button handlers
     @objc func didChangeBinaryOperation(_ binaryOperationChangedNotification: Notification) {
         guard let userInfo = binaryOperationChangedNotification.userInfo,
               let infoUnderKey = userInfo[SharedConstants.selectedBinaryOperationUserInfoKey],
@@ -185,7 +172,22 @@ class ButtonView: HighlightableBackgroundView {
             return
         }
         
-        if self.id == operationToSelect {
+        if self.currentId == operationToSelect {
+            self.visualState = .selected
+        } else {
+            self.visualState = .normal
+        }
+    }
+    
+    @objc func memoryRecallSelectionStateChanged(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let shouldSelect =
+                userInfo[SharedConstants.shouldSelectMemoryRecallButton] as? Bool else {
+            assertionFailure("Could not obtain necessary information from Notification.")
+            return
+        }
+        
+        if shouldSelect {
             self.visualState = .selected
         } else {
             self.visualState = .normal
@@ -193,6 +195,17 @@ class ButtonView: HighlightableBackgroundView {
     }
     
     // MARK: -
+    private static func getFontWeight(for buttonColor: ButtonColor) -> UIFont.Weight {
+        switch buttonColor {
+        case _ where buttonColor.isScientific:
+            return .medium
+        case .standardButtonProminent, .accentColor:
+            return .medium
+        default:
+            return .regular
+        }
+    }
+    
     private static func getFontSize(for buttonColor: ButtonColor, orientation: InterfaceOrientation) -> CGFloat {
         switch buttonColor {
         // Special cases
@@ -230,7 +243,7 @@ class ButtonView: HighlightableBackgroundView {
     }
     
     private struct Constants {
-        static let scientificButtonFontSize: CGFloat = 16
+        static let scientificButtonFontSize: CGFloat = 17
         
         struct Portrait {
             static let standardButtonFontSize: CGFloat = 40
@@ -247,17 +260,20 @@ class ButtonView: HighlightableBackgroundView {
 
 extension ButtonView {
     private static func getBackgroundColors(for configuration: ButtonConfiguration) ->
-    (normal: UIColor?, highlighted: UIColor?) {
+    (normal: UIColor?, highlighted: UIColor?, selected: UIColor?) {
         var normalBackgroundColor: UIColor? = nil
         var highlightedBackgroundColor: UIColor? = nil
+        var selectedBackgroundColor: UIColor? = nil
         
         switch configuration.color {
         case .accentColor:
             normalBackgroundColor = UIColor(named: "ButtonAccentColor")!
             highlightedBackgroundColor = UIColor(named: "ButtonAccentColorHighlighted")!
+            selectedBackgroundColor = .white
         case .scientificButtonColor:
             normalBackgroundColor = UIColor(named: "ScientificButtonColor")!
             highlightedBackgroundColor = UIColor(named: "ScientificButtonColorHighlighted")!
+            selectedBackgroundColor = UIColor(named: "ScientificButtonColorSelected")!
         case .scientificButtonSelected:
             fatalError("unhandled case") // TODO
         case .standardButtonColor:
@@ -268,6 +284,6 @@ extension ButtonView {
             highlightedBackgroundColor = UIColor(named: "StandardButtonProminentColorHighlighted")!
         }
         
-        return (normalBackgroundColor, highlightedBackgroundColor)
+        return (normalBackgroundColor, highlightedBackgroundColor, selectedBackgroundColor)
     }
 }

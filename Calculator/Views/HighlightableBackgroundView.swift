@@ -10,16 +10,20 @@ import UIKit
 
 class HighlightableBackgroundView: UIView {
     
-    init(normalBackgroundColor: UIColor?, highlightedBackgroundColor: UIColor?) {
+    init(normalBackgroundColor: UIColor?, highlightedBackgroundColor: UIColor?,
+         selectedBackgroundColor: UIColor?) {
+        self.selectionAnimationDuration = 0.2
         super.init(frame: .zero)
                 
         self.configureBackgroundColor(normalBackgroundColor, for: .normal)
         self.configureBackgroundColor(highlightedBackgroundColor, for: .highlighted)
-        self.configureBackgroundColor(.white, for: .selected) // TODO: - different for scientific buttons
+        self.configureBackgroundColor(selectedBackgroundColor, for: .selected)
         
         // set the backgroundColor to normal state
         self.backgroundColor = stateBackgroundColorMap[.normal]!
     }
+    
+    var selectionAnimationDuration: TimeInterval
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -29,9 +33,8 @@ class HighlightableBackgroundView: UIView {
         didSet {
             if visualState == oldValue { return }
             
-//            print(oldValue, " --> ", visualState)
+//            print(oldValue, "-->", visualState)
             switch visualState {
-                // TODO: - we might want to consider the old state as well to determine the correct transition
             case .normal:
                 // remove highlight gradually
                 if let colorForState = self.stateBackgroundColorMap[visualState] {
@@ -46,7 +49,7 @@ class HighlightableBackgroundView: UIView {
                 }
             case .selected:
                 if let colorForState = self.stateBackgroundColorMap[visualState] {
-                    UIView.animate(withDuration: 0.2) {
+                    UIView.animate(withDuration: self.selectionAnimationDuration, delay: 0, options: .allowUserInteraction) {
                         self.backgroundColor = colorForState
                     }
                 }
@@ -79,9 +82,21 @@ class HighlightableBackgroundView: UIView {
         }
     }
     
+    func toggleSelection() {
+        assert(self.visualState == .highlighted)
+        switch self.previousVisualState {
+        case .normal:
+            self.visualState = .selected
+        case .selected:
+            self.visualState = .normal
+        default:
+            break
+        }
+    }
+    
     enum VisualState {
         case normal
-        case highlighted // TODO: - rename
+        case highlighted
         case selected
     }
 }

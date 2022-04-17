@@ -213,17 +213,7 @@ class ButtonsGridView: UIStackView {
             return _cachedHighlightableViews
         }
     }
-    var currentlyHighlightedView: HighlightableBackgroundView? {
-        willSet {
-            if newValue == nil {
-                // make sure the view has been unhighlighted
-                if self.currentlyHighlightedView?.visualState == .highlighted {
-                    self.currentlyHighlightedView!.removeHighlight()
-                    assert(self.currentlyHighlightedView!.visualState != .highlighted)
-                }
-            }
-        }
-    }
+    var currentlyHighlightedView: HighlightableBackgroundView?
     
     @objc func buttonPressOrDrag(_ sender: UILongPressGestureRecognizer) {
         func highlightButtonUnderTouch() {
@@ -269,20 +259,24 @@ class ButtonsGridView: UIStackView {
             // touch up event -
             // for the button under this touch,
             // unhighlight it and fire its action handler
-            if let button = self.currentlyHighlightedView {
+            if self.currentlyHighlightedView != nil {
+                let button = self.currentlyHighlightedView as! ButtonView
                 assert(button.visualState == .highlighted)
-                button.removeHighlight()
-                assert(button.visualState != .highlighted)
+                if !button.shouldPreserveHighlight  {
+                    button.removeHighlight()
+                    assert(button.visualState != .highlighted)
+                }
                 self.currentlyHighlightedView = nil
                 
                 assert(!button.isHidden, "Tried to activate hidden button.")
-                (button as? ButtonView)?.buttonTap()
+                button.buttonTap()
             }
         case .cancelled, .failed:
             // this happens for example, in landscape, when a drag on buttons at
             // the bottom turns into a swipe on the home indicator
             
             // just reset the state
+            self.currentlyHighlightedView?.removeHighlight()
             self.currentlyHighlightedView = nil
         default:
             assertionFailure("Possibly unhandled gesture recognizer state? State = \(sender.state.rawValue)")
