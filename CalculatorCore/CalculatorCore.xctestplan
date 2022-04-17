@@ -15,6 +15,7 @@
       }
     },
     {
+      "enabled" : false,
       "id" : "996018CC-B32C-4153-B4AD-B83CB8864C9F",
       "name" : "Digit input + misc. even",
       "options" : {
@@ -43,6 +44,7 @@
       }
     },
     {
+      "enabled" : false,
       "id" : "65BB1DDD-5375-41CF-B256-F5225E0B0563",
       "name" : "Number input + misc. even",
       "options" : {
